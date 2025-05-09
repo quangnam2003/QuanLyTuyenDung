@@ -1,0 +1,91 @@
+<!-- Header -->
+<header class="header">
+  <div class="container">
+    <div class="logo">
+      <h1>Quản Lý Tuyển Dụng</h1>
+    </div>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="#">Trang chủ</a></li>
+        <li><a href="#">Việc làm</a></li>
+        <li><a href="#">Công ty</a></li>
+        <li><a href="#">Đăng nhập</a></li>
+        <li><a href="#">Đăng ký</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- Main Banner -->
+<section class="main-banner">
+  <div class="container">
+    <div class="banner-content">
+      <h2>Tìm kiếm công việc mơ ước của bạn</h2>
+      <div class="search-box">
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Nhập từ khóa tìm kiếm...">
+        <button (click)="onSearch()">Tìm kiếm</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Jobs -->
+<section class="featured-jobs">
+  <div class="container">
+    <h2>Việc làm nổi bật</h2>
+    
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading">
+      <p>Đang tải dữ liệu...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error">
+      <p>{{error}}</p>
+    </div>
+
+    <!-- Jobs List -->
+    <div class="job-list" *ngIf="!loading && !error">
+      <div class="job-card" *ngFor="let job of featuredJobs">
+        <h3>{{job.title}}</h3>
+        <p class="company">{{job.company}}</p>
+        <p class="location">{{job.location}}</p>
+        <p class="salary">{{job.salary}}</p>
+        <button (click)="viewJobDetails(job)">Xem chi tiết</button>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div *ngIf="!loading && !error && featuredJobs.length === 0" class="no-results">
+      <p>Không tìm thấy việc làm phù hợp.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>Về chúng tôi</h3>
+        <p>Hệ thống quản lý tuyển dụng hàng đầu Việt Nam</p>
+      </div>
+      <div class="footer-section">
+        <h3>Liên hệ</h3>
+        <p>Email: contact&#64;recruitment.com</p>
+        <p>Điện thoại: 0123-456-789</p>
+      </div>
+      <div class="footer-section">
+        <h3>Theo dõi chúng tôi</h3>
+        <div class="social-links">
+          <a href="#">Facebook</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">Twitter</a>
+        </div>
+      </div>
+    </div>
+    <div class="copyright">
+      <p>&copy; 2025 Quản Lý Tuyển Dụng. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
