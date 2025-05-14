@@ -74,4 +74,122 @@ textarea.form-control {
 .btn-danger:hover {
   background-color: #c82333;
   border-color: #bd2130;
+}
+
+/* Modal Styles */
+.modal {
+  display: block;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop {
+  opacity: 0.5;
+}
+
+.modal.show {
+  display: block;
+}
+
+/* Table Styles */
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* Badge Styles */
+.badge {
+  padding: 0.5em 0.75em;
+  font-weight: 500;
+}
+
+/* Form Styles */
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Button Styles */
+.btn-group .btn {
+  padding: 0.25rem 0.5rem;
+}
+
+.btn-group .btn i {
+  font-size: 0.875rem;
+}
+
+/* Card Styles */
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: none;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Responsive Table */
+.table-responsive {
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .table-responsive {
+    border: 0;
+  }
+  
+  .table td {
+    white-space: normal;
+  }
+}
+
+/* Modal Responsive */
+@media (max-width: 992px) {
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+}
+
+/* Form Grid */
+.row.g-3 {
+  margin-bottom: 1rem;
+}
+
+/* Required Field Indicator */
+.form-label::after {
+  content: " *";
+  color: red;
+}
+
+/* Button Hover Effects */
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.btn-outline-primary:hover, .btn-outline-danger:hover {
+  transform: translateY(-1px);
+}
+
+/* Table Hover Effect */
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Modal Animation */
+.modal.fade .modal-dialog {
+  transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+  transform: none;
 } 

@@ -1,4 +1,4 @@
-@QuanLyTuyenDung_HostAddress = http://localhost:5081
+@QuanLyTuyenDung_HostAddress = http://localhost:5296
 
 GET {{QuanLyTuyenDung_HostAddress}}/weatherforecast/
 Accept: application/json

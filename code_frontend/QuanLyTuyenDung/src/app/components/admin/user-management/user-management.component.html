@@ -1,0 +1,39 @@
+<div class="container mt-4">
+  <h2>Quản lý người dùng</h2>
+  <div *ngIf="isLoading">Đang tải...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <table class="table table-bordered table-hover" *ngIf="users.length">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Họ tên</th>
+        <th>Email</th>
+        <th>Vai trò</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.userID }}</td>
+        <td>{{ user.fullName }}</td>
+        <td>{{ user.email }}</td>
+        <td>
+          <select
+            #roleSelect
+            [value]="user.role"
+            (change)="changeRole(user, roleSelect.value)"
+            aria-label="Chọn vai trò người dùng">
+            <option value="User">User</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </td>
+        <td>
+          <button class="btn btn-danger btn-sm" (click)="deleteUser(user)">Xóa</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="!isLoading && users.length === 0" class="text-center text-muted">
+    Không có người dùng nào.
+  </div>
+</div>

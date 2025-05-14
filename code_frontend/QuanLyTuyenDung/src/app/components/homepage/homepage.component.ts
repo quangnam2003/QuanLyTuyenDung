@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../interfaces/job.interface';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-homepage',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css']
 })

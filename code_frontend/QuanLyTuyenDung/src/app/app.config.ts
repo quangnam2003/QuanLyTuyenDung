@@ -4,11 +4,11 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
-import { routes } from './app.routes';
+import { routes } from './app-routing.module';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter([]),
+    provideRouter(routes),
     provideAnimations(),
     provideHttpClient(),
     provideClientHydration(withEventReplay())

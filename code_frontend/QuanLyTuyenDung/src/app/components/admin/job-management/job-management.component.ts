@@ -24,7 +24,15 @@ export class JobManagementComponent implements OnInit {
     location: '',
     company: '',
     type: 'Full-time',
-    status: 'Active'
+    status: 'Active',
+    department: '',
+    numberOfPositions: 0,
+    applicationDeadline: new Date(),
+    experienceRequired: '',
+    benefits: '',
+    detailedLocation: '',
+    skills: [],
+    education: ''
   };
 
   constructor(private jobService: JobService) { }
@@ -110,7 +118,15 @@ export class JobManagementComponent implements OnInit {
       location: '',
       company: '',
       type: 'Full-time',
-      status: 'Active'
+      status: 'Active',
+      department: '',
+      numberOfPositions: 0,
+      applicationDeadline: new Date(),
+      experienceRequired: '',
+      benefits: '',
+      detailedLocation: '',
+      skills: [],
+      education: ''
     };
   }
 } 

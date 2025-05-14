@@ -1,0 +1,11 @@
+.container {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+}
+h2 {
+  margin-bottom: 1.5rem;
+}
+.table th, .table td {
+  vertical-align: middle;
+}
