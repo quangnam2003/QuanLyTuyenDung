@@ -32,12 +32,10 @@ namespace QuanLyTuyenDung.Controllers
         public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
-
             if (user == null)
             {
                 return NotFound();
             }
-
             return user;
         }
 
@@ -53,14 +51,24 @@ namespace QuanLyTuyenDung.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] User updatedUser)
         {
-            if (id != user.UserID)
-            {
+            if (id != updatedUser.UserID)
                 return BadRequest();
-            }
 
-            _context.Entry(user).State = EntityState.Modified;
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound();
+
+            // Cập nhật các thông tin cần thiết
+            user.FullName = updatedUser.FullName;
+            user.Email = updatedUser.Email;
+            // Nếu có role trong request và user có quyền thay đổi role
+            if (!string.IsNullOrEmpty(updatedUser.Role))
+            {
+                user.Role = updatedUser.Role;
+            }
+            // Thêm các trường khác nếu cần
 
             try
             {
@@ -78,7 +86,7 @@ namespace QuanLyTuyenDung.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(user);
         }
 
         // DELETE: api/Users/5
@@ -155,13 +163,6 @@ namespace QuanLyTuyenDung.Controllers
             public string password { get; set; }
         }
 
-        // Lấy danh sách tất cả người dùng
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
-        {
-            return await _context.Users.ToListAsync();
-        }
-
         // Thay đổi quyền người dùng
         [HttpPut("{id}/role")]
         public async Task<IActionResult> UpdateUserRole(int id, [FromBody] string newRole)
@@ -174,23 +175,27 @@ namespace QuanLyTuyenDung.Controllers
             await _context.SaveChangesAsync();
             return Ok(user);
         }
-
-        // Cập nhật thông tin cá nhân (email, fullName, phone, ...)
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUserInfo(int id, [FromBody] User updatedUser)
+        [HttpPut("{id}/profile")]
+        public async Task<IActionResult> UpdateUserProfile(int id, [FromBody] User updatedUser)
         {
-            if (id != updatedUser.UserID)
-                return BadRequest();
-
             var user = await _context.Users.FindAsync(id);
             if (user == null)
                 return NotFound();
 
             user.FullName = updatedUser.FullName;
             user.Email = updatedUser.Email;
-            // Thêm các trường khác nếu cần
-            await _context.SaveChangesAsync();
-            return Ok(user);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(user);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                    return NotFound();
+                throw;
+            }
         }
 
         private bool UserExists(int id)
