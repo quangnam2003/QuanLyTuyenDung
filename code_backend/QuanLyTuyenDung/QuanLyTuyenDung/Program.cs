@@ -8,6 +8,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+//Cấu hình CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200") // URL frontend của bạn
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// Các service khác
+builder.Services.AddControllers();
+
 // Cấu hình CORS cho phép tất cả
 builder.Services.AddCors(options =>
 {

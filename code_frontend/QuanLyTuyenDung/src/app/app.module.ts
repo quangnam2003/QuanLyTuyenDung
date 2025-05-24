@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -12,9 +13,12 @@ import { JobManagementComponent } from './components/admin/job-management/job-ma
     AppRoutingModule,
     FormsModule,
     HttpClientModule,
+    CommonModule,
     AppComponent,
     JobManagementComponent
   ],
-  providers: []
+  declarations: [
+    // thêm các component khác như UserManagementComponent ở đây nếu chưa có
+  ]
 })
-export class AppModule { } 
+export class AppModule { }
