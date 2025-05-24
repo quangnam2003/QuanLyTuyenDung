@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService, LoginRequest } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="login-container">
       <div class="login-box">
@@ -64,7 +64,7 @@ import { AuthService, LoginRequest } from '../../../services/auth.service';
           </div>
 
           <div class="text-center mt-3">
-            <a routerLink="/register">Chưa có tài khoản? Đăng ký ngay</a>
+            Chưa có tài khoản?<a routerLink="/register"> Đăng ký ngay</a>
           </div>
         </form>
       </div>
@@ -199,7 +199,7 @@ export class LoginComponent {
         if (response.role === 'Admin') {
           this.router.navigate(['/admin']);
         } else {
-          this.router.navigate(['/']);
+          this.router.navigate(['/user/dashboard']);
         }
         this.isLoading = false;
       },

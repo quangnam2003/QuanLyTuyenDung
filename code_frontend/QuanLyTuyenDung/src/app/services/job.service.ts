@@ -56,4 +56,9 @@ export class JobService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`)
       .pipe(catchError(this.handleError));
   }
+
+  getRecommendedJobs(): Observable<Job[]> {
+    return this.http.get<Job[]>(`${this.apiUrl}/recommended`)
+      .pipe(catchError(this.handleError));
+  }
 }

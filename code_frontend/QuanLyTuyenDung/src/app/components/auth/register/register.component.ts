@@ -120,7 +120,7 @@ import { AuthService, RegisterRequest } from '../../../services/auth.service';
           </div>
 
           <div class="text-center mt-3">
-            <a routerLink="/login">Đã có tài khoản? Đăng nhập ngay</a>
+            Đã có tài khoản?<a routerLink="/login"> Đăng nhập ngay</a>
           </div>
         </form>
       </div>

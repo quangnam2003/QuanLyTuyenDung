@@ -1,49 +1,35 @@
-import { Component } from '@angular/core';
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-export interface User {
-  userID: number;
-  fullName: string;
-  email: string;
-  role: string;
-}
-
-@Injectable({ providedIn: 'root' })
-export class UserService {
-  private apiUrl = 'https://localhost:7029/api/Users';
-
-  constructor(private http: HttpClient) {}
-
-  getAllUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl);
-  }
-
-  deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
-  updateUserRole(id: number, newRole: string): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${id}/role`, newRole, {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
-  updateUserInfo(user: User): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${user.userID}`, user);
-  }
-}
+import { Component, OnInit } from '@angular/core';
+import { UserService, User } from '../../../services/user.service';
 
 @Component({
   selector: 'app-user-management',
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.css']
 })
-export class UserManagementComponent {
+export class UserManagementComponent implements OnInit {
+  users: User[] = [];
+  isLoading = false;
   error: string = '';
 
   constructor(public userService: UserService) {}
+
+  ngOnInit() {
+    this.loadUsers();
+  }
+
+  loadUsers() {
+    this.isLoading = true;
+    this.userService.getAllUsers().subscribe({
+      next: users => {
+        this.users = users;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.error = 'Không thể tải danh sách người dùng.';
+        this.isLoading = false;
+      }
+    });
+  }
 
   changeRole(user: User, newRole: string) {
     this.userService.updateUserRole(user.userID, newRole).subscribe({
@@ -60,7 +46,7 @@ export class UserManagementComponent {
     if (confirm(`Bạn có chắc muốn xóa người dùng ${user.fullName}?`)) {
       this.userService.deleteUser(user.userID).subscribe({
         next: () => {
-          // Optionally reload users or remove from local array
+          this.loadUsers();
         },
         error: () => {
           this.error = 'Xóa người dùng thất bại!';

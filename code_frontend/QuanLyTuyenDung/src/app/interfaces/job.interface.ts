@@ -12,4 +12,5 @@ export interface Job {
   status: string;
   createdAt?: Date;
   updatedAt?: Date;
+  isSaved?: boolean;
 } 

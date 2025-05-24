@@ -8,6 +8,8 @@ import { RegisterComponent } from './components/auth/register/register.component
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { UserManagementComponent } from './components/admin/user-management/user-management.component';
+import { UserInterfaceComponent } from './components/user/user-interface/user-interface.component';
+import { UserGuard } from './guards/user.guard';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent },
@@ -26,6 +28,19 @@ export const routes: Routes = [
       // { path: 'candidates', component: CandidateManagementComponent },
       // { path: 'interviews', component: InterviewManagementComponent },
       // { path: 'reports', component: ReportsComponent },
+    ]
+  },
+  {
+    path: 'user',
+    component: UserInterfaceComponent,
+    canActivate: [AuthGuard, UserGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: UserInterfaceComponent },
+      { path: 'profile', component: UserInterfaceComponent },
+      { path: 'applications', component: UserInterfaceComponent },
+      { path: 'saved-jobs', component: UserInterfaceComponent },
+      { path: 'settings', component: UserInterfaceComponent }
     ]
   },
   { path: '**', redirectTo: '' }

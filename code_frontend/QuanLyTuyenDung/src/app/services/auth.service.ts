@@ -17,14 +17,13 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
+  id: number;
+  email: string;
+  fullName: string;
+  role: string;
   token: string;
-  user: {
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 @Injectable({
@@ -38,7 +37,12 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    const savedUser = localStorage.getItem('currentUser');
+    let savedUser = null;
+    try {
+      savedUser = localStorage.getItem('currentUser');
+    } catch (e) {
+      // Storage access denied
+    }
     if (savedUser) {
       this.currentUserSubject.next(JSON.parse(savedUser));
     }
@@ -48,8 +52,12 @@ export class AuthService {
     return this.http.post<AuthResponse>('https://localhost:7029/api/Users/login', request)
       .pipe(
         tap(response => {
-          localStorage.setItem('currentUser', JSON.stringify(response));
-          localStorage.setItem('token', response.token);
+          try {
+            localStorage.setItem('currentUser', JSON.stringify(response));
+            localStorage.setItem('token', response.token);
+          } catch (e) {
+            // Storage access denied
+          }
           this.currentUserSubject.next(response);
         })
       );
@@ -59,16 +67,24 @@ export class AuthService {
     return this.http.post<AuthResponse>('https://localhost:7029/api/Users/register', request)
       .pipe(
         tap(response => {
-          localStorage.setItem('currentUser', JSON.stringify(response));
-          localStorage.setItem('token', response.token);
+          try {
+            localStorage.setItem('currentUser', JSON.stringify(response));
+            localStorage.setItem('token', response.token);
+          } catch (e) {
+            // Storage access denied
+          }
           this.currentUserSubject.next(response);
         })
       );
   }
 
   logout(): void {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('token');
+    try {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
+    } catch (e) {
+      // Storage access denied
+    }
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
@@ -94,5 +110,10 @@ export class AuthService {
   isRecruiter(): boolean {
     const user = this.currentUserSubject.value as any;
     return !!user && user.role === 'Recruiter';
+  }
+
+  isUser(): boolean {
+    const user = this.currentUserSubject.value as any;
+    return !!user && (user.role === 'User' || user.role === 'HR' || user.role === 'Recruiter');
   }
 } 

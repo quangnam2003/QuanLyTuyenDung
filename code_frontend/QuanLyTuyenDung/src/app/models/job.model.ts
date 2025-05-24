@@ -8,6 +8,7 @@ export interface Job {
   company: string;
   type: 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
   status: 'Active' | 'Closed' | 'Draft';
+  isSaved?: boolean;
   
   // Thêm các trường mới
   department: string;           // Phòng ban/bộ phận
