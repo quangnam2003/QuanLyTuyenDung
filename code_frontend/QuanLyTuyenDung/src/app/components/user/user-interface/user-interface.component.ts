@@ -5,6 +5,7 @@ import { AuthService } from '../../../services/auth.service';
 import { User } from '../../../interfaces/user.interface';
 import { JobService } from '../../../services/job.service';
 import { Job } from '../../../models/job.model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-user-interface',
@@ -35,73 +36,7 @@ import { Job } from '../../../models/job.model';
       <!-- Main Content -->
       <main class="user-main">
         <div class="container">
-          <!-- Dashboard Overview -->
-          <section class="dashboard-overview" *ngIf="isDashboardRoute">
-            <div class="stats-grid">
-              <div class="stat-card">
-                <h3>Đơn ứng tuyển</h3>
-                <p class="stat-number">{{applicationCount}}</p>
-                <a routerLink="/user/applications">Xem chi tiết</a>
-              </div>
-              <div class="stat-card">
-                <h3>Việc làm đã lưu</h3>
-                <p class="stat-number">{{savedJobsCount}}</p>
-                <a routerLink="/user/saved-jobs">Xem chi tiết</a>
-              </div>
-              <div class="stat-card">
-                <h3>Phỏng vấn sắp tới</h3>
-                <p class="stat-number">{{upcomingInterviews}}</p>
-                <a routerLink="/user/interviews">Xem chi tiết</a>
-              </div>
-            </div>
-
-            <!-- Recent Applications -->
-            <section class="recent-applications">
-              <h3>Đơn ứng tuyển gần đây</h3>
-              <div class="applications-list" *ngIf="recentApplications.length > 0">
-                <div class="application-card" *ngFor="let application of recentApplications">
-                  <div class="application-info">
-                    <h4>{{application.jobTitle}}</h4>
-                    <p class="company">{{application.company}}</p>
-                    <p class="status" [ngClass]="application.status.toLowerCase()">
-                      {{application.status}}
-                    </p>
-                  </div>
-                  <div class="application-date">
-                    {{application.appliedDate | date:'dd/MM/yyyy'}}
-                  </div>
-                </div>
-              </div>
-              <p *ngIf="recentApplications.length === 0" class="no-data">
-                Chưa có đơn ứng tuyển nào
-              </p>
-            </section>
-
-            <!-- Recommended Jobs -->
-            <section class="recommended-jobs">
-              <h3>Việc làm phù hợp với bạn</h3>
-              <div class="jobs-grid" *ngIf="recommendedJobs.length > 0">
-                <div class="job-card" *ngFor="let job of recommendedJobs">
-                  <h4>{{job.title}}</h4>
-                  <p class="company">{{job.company}}</p>
-                  <p class="location">{{job.location}}</p>
-                  <p class="salary">{{job.salary}}</p>
-                  <div class="job-actions">
-                    <button class="btn-apply" (click)="applyForJob(job)">Ứng tuyển</button>
-                    <button class="btn-save" (click)="saveJob(job)">
-                      {{job.isSaved ? 'Đã lưu' : 'Lưu'}}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <p *ngIf="recommendedJobs.length === 0" class="no-data">
-                Không tìm thấy việc làm phù hợp
-              </p>
-            </section>
-          </section>
-
-          <!-- Router Outlet for other user pages -->
-          <router-outlet *ngIf="!isDashboardRoute"></router-outlet>
+          <router-outlet></router-outlet>
         </div>
       </main>
     </div>
@@ -360,12 +295,14 @@ export class UserInterfaceComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private jobService: JobService
+    private jobService: JobService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadUserData();
     this.loadDashboardData();
+    this.isDashboardRoute = this.router.url.endsWith('/dashboard');
   }
 
   loadUserData(): void {

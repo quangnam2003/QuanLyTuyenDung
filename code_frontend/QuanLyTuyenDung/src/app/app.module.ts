@@ -18,7 +18,6 @@ import { JobManagementComponent } from './components/admin/job-management/job-ma
     JobManagementComponent
   ],
   declarations: [
-    // thêm các component khác như UserManagementComponent ở đây nếu chưa có
   ]
 })
 export class AppModule { }

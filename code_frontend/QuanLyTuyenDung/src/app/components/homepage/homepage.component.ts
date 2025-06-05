@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../interfaces/job.interface';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { User } from '../../interfaces/user.interface';
 
 @Component({
   selector: 'app-homepage',
@@ -17,8 +19,11 @@ export class HomepageComponent implements OnInit {
   featuredJobs: Job[] = [];
   loading: boolean = true;
   error: string | null = null;
+  currentUser: User | null = null;
 
-  constructor(private jobService: JobService) { }
+  constructor(private jobService: JobService, private authService: AuthService) {
+    this.authService.currentUser$.subscribe(user => this.currentUser = user);
+  }
 
   ngOnInit(): void {
     this.loadFeaturedJobs();

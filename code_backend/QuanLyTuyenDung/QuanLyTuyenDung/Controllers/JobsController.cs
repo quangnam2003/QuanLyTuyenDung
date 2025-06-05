@@ -42,6 +42,14 @@ namespace QuanLyTuyenDung.Controllers
             return job;
         }
 
+        // GET: api/Jobs/featured
+        [HttpGet("featured")]
+        public IActionResult GetFeaturedJobs()
+        {
+            var featuredJobs = _context.Jobs.Where(j => j.IsFeatured).ToList();
+            return Ok(featuredJobs);
+        }
+
         // POST: api/Jobs
         [HttpPost]
         public async Task<ActionResult<Job>> PostJob(Job job)

@@ -12,17 +12,18 @@
       {{ isEditing ? 'Sửa công việc' : 'Thêm công việc mới' }}
     </div>
     <div class="card-body">
+      <div class="add-job-header">Thêm công việc mới</div>
       <form (ngSubmit)="isEditing ? updateJob() : createJob()" #jobForm="ngForm">
-        <div class="row">
+        <div class="form-row">
           <div class="col-md-6 mb-3">
-            <label for="title" class="form-label">Tiêu đề</label>
+            <label for="title" class="form-label">Tiêu đề <span class="required">*</span></label>
             <input type="text" class="form-control" id="title" 
                    [ngModel]="isEditing ? selectedJob?.title : newJob.title"
                    (ngModelChange)="isEditing ? (selectedJob ? selectedJob.title = $event : null) : newJob.title = $event"
                    name="title" required>
           </div>
           <div class="col-md-6 mb-3">
-            <label for="company" class="form-label">Công ty</label>
+            <label for="company" class="form-label">Công ty <span class="required">*</span></label>
             <input type="text" class="form-control" id="company" 
                    [ngModel]="isEditing ? selectedJob?.company : newJob.company"
                    (ngModelChange)="isEditing ? (selectedJob ? selectedJob.company = $event : null) : newJob.company = $event"
@@ -30,16 +31,16 @@
           </div>
         </div>
 
-        <div class="row">
+        <div class="form-row">
           <div class="col-md-6 mb-3">
-            <label for="location" class="form-label">Địa điểm</label>
+            <label for="location" class="form-label">Địa điểm <span class="required">*</span></label>
             <input type="text" class="form-control" id="location" 
                    [ngModel]="isEditing ? selectedJob?.location : newJob.location"
                    (ngModelChange)="isEditing ? (selectedJob ? selectedJob.location = $event : null) : newJob.location = $event"
                    name="location" required>
           </div>
           <div class="col-md-6 mb-3">
-            <label for="salary" class="form-label">Mức lương</label>
+            <label for="salary" class="form-label">Mức lương <span class="required">*</span></label>
             <input type="text" class="form-control" id="salary" 
                    [ngModel]="isEditing ? selectedJob?.salary : newJob.salary"
                    (ngModelChange)="isEditing ? (selectedJob ? selectedJob.salary = $event : null) : newJob.salary = $event"
@@ -47,9 +48,9 @@
           </div>
         </div>
 
-        <div class="row">
+        <div class="form-row">
           <div class="col-md-6 mb-3">
-            <label for="type" class="form-label">Loại công việc</label>
+            <label for="type" class="form-label">Loại công việc <span class="required">*</span></label>
             <select class="form-select" id="type" 
                     [ngModel]="isEditing ? selectedJob?.type : newJob.type"
                     (ngModelChange)="isEditing ? (selectedJob ? selectedJob.type = $event : null) : newJob.type = $event"
@@ -61,7 +62,7 @@
             </select>
           </div>
           <div class="col-md-6 mb-3">
-            <label for="status" class="form-label">Trạng thái</label>
+            <label for="status" class="form-label">Trạng thái <span class="required">*</span></label>
             <select class="form-select" id="status" 
                     [ngModel]="isEditing ? selectedJob?.status : newJob.status"
                     (ngModelChange)="isEditing ? (selectedJob ? selectedJob.status = $event : null) : newJob.status = $event"
@@ -73,7 +74,7 @@
         </div>
 
         <div class="mb-3">
-          <label for="description" class="form-label">Mô tả công việc</label>
+          <label for="description" class="form-label">Mô tả công việc <span class="required">*</span></label>
           <textarea class="form-control" id="description" rows="3" 
                     [ngModel]="isEditing ? selectedJob?.description : newJob.description"
                     (ngModelChange)="isEditing ? (selectedJob ? selectedJob.description = $event : null) : newJob.description = $event"
@@ -81,7 +82,7 @@
         </div>
 
         <div class="mb-3">
-          <label for="requirements" class="form-label">Yêu cầu</label>
+          <label for="requirements" class="form-label">Yêu cầu <span class="required">*</span></label>
           <textarea class="form-control" id="requirements" rows="3" 
                     [ngModel]="isEditing ? selectedJob?.requirements : newJob.requirements"
                     (ngModelChange)="isEditing ? (selectedJob ? selectedJob.requirements = $event : null) : newJob.requirements = $event"

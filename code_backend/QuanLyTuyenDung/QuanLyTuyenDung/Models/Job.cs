@@ -14,6 +14,7 @@ namespace QuanLyTuyenDung.Models
         public User User { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string Type { get; set; } // Added missing 'Type' property  
+        public string Type { get; set; } 
+        public bool IsFeatured { get; set; }
     }
 }

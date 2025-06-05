@@ -149,11 +149,12 @@ namespace QuanLyTuyenDung.Controllers
             if (user.PasswordHash != request.password)
                 return Unauthorized(new { message = "Sai mật khẩu." });
 
+            // Trả về đúng tên trường cho frontend
             return Ok(new {
-                user.UserID,
-                user.FullName,
-                user.Email,
-                user.Role
+                id = user.UserID,
+                fullName = user.FullName,
+                email = user.Email,
+                role = user.Role
             });
         }
 

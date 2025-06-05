@@ -10,6 +10,11 @@ import { AdminGuard } from './guards/admin.guard';
 import { UserManagementComponent } from './components/admin/user-management/user-management.component';
 import { UserInterfaceComponent } from './components/user/user-interface/user-interface.component';
 import { UserGuard } from './guards/user.guard';
+import { UserProfileComponent } from './components/user/user-profile/user-profile.component';
+import { UserDashboardComponent } from './components/user/user-dashboard/user-dashboard.component';
+import { UserApplicationsComponent } from './components/user/user-applications/user-applications.component';
+import { UserSavedJobsComponent } from './components/user/user-saved-jobs/user-saved-jobs.component';
+import { UserSettingsComponent } from './components/user/user-settings/user-settings.component';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent },
@@ -21,7 +26,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, AdminGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: JobManagementComponent }, // Tạm thời dùng JobManagementComponent cho dashboard
+      { path: 'dashboard', component: JobManagementComponent },
       { path: 'jobs', component: JobManagementComponent },
       { path: 'users', component: UserManagementComponent },
       // Các route khác sẽ được thêm sau
@@ -33,14 +38,13 @@ export const routes: Routes = [
   {
     path: 'user',
     component: UserInterfaceComponent,
-    canActivate: [AuthGuard, UserGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: UserInterfaceComponent },
-      { path: 'profile', component: UserInterfaceComponent },
-      { path: 'applications', component: UserInterfaceComponent },
-      { path: 'saved-jobs', component: UserInterfaceComponent },
-      { path: 'settings', component: UserInterfaceComponent }
+      { path: 'dashboard', component: UserDashboardComponent },
+      { path: 'profile', component: UserProfileComponent },
+      { path: 'applications', component: UserApplicationsComponent },
+      { path: 'saved-jobs', component: UserSavedJobsComponent },
+      { path: 'settings', component: UserSettingsComponent }
     ]
   },
   { path: '**', redirectTo: '' }

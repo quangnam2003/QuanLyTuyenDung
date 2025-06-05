@@ -62,7 +62,11 @@ app.UseSwaggerUI(c =>
 
 // Middleware cơ bản
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors(builder =>
+    builder.WithOrigins("http://localhost:4200")
+           .AllowAnyHeader()
+           .AllowAnyMethod()
+           .AllowCredentials());
 
 // Xử lý preflight request cho CORS
 app.Use(async (context, next) =>

@@ -17,6 +17,9 @@ namespace QuanLyTuyenDung.DBContext
         public DbSet<Application> Applications { get; set; }
         public DbSet<JobOffer> JobOffers { get; set; }
         public DbSet<Recruiter> Recruiters { get; set; }
+        public DbSet<Document> Documents { get; set; }
+        public DbSet<JobPost> JobPosts { get; set; }
+        public DbSet<JobApplication> JobApplications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +50,32 @@ namespace QuanLyTuyenDung.DBContext
                 .IsRequired()
                 .HasMaxLength(20);
 
+            modelBuilder.Entity<Candidate>()
+                .Property(c => c.UserId)
+                .IsRequired();
+
+            // Document Configuration
+            modelBuilder.Entity<Document>()
+                .Property(d => d.Type)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Document>()
+                .Property(d => d.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Document>()
+                .Property(d => d.Url)
+                .IsRequired()
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Document>()
+                .HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Interview Configuration
             modelBuilder.Entity<Interview>()
                 .Property(i => i.Type)
@@ -75,6 +104,15 @@ namespace QuanLyTuyenDung.DBContext
             modelBuilder.Entity<JobOffer>()
                 .Property(j => j.Status)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<JobPost>()
+                .Property(j => j.Type)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<JobApplication>()
+                .Property(a => a.Status)
+                .HasConversion<string>();
+
         }
     }
 } 
