@@ -16,10 +16,48 @@ namespace QuanLyTuyenDung.Models
         [Required]
         public string PasswordHash { get; set; }
 
-        [Required]
-        public string Role { get; set; } // HR, Admin, Recruiter
+        [Required, MaxLength(50)]
+        public string Role { get; set; } // Admin, HR, Recruiter, User
 
+        [MaxLength(15)]
+        public string? Phone { get; set; } // NULLABLE
+
+        [MaxLength(500)]
+        public string? Avatar { get; set; } // SỬA: THÊM ? ĐỂ NULLABLE
+
+        [MaxLength(100)]
+        public string? Department { get; set; } // NULLABLE
+
+        [MaxLength(100)]
+        public string? Position { get; set; } // NULLABLE
+
+        public bool IsActive { get; set; } = true;
+        public bool EmailVerified { get; set; } = false;
+        public DateTime? LastLoginAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
+
+        // Profile completion percentage
+        public int ProfileCompleteness { get; set; } = 0;
+
+        // Preferences as JSON
+        public string? PreferencesJson { get; set; } // NULLABLE
+
+        // Navigation Properties
+        public virtual ICollection<Job>? PostedJobs { get; set; }
+        public virtual ICollection<Document>? Documents { get; set; }
+        public virtual Candidate? Candidate { get; set; }
+        public virtual Recruiter? Recruiter { get; set; }
     }
 
+    // User Preferences Class
+    public class UserPreferences
+    {
+        public bool EmailNotifications { get; set; } = true;
+        public bool SMSNotifications { get; set; } = false;
+        public string PreferredLanguage { get; set; } = "vi";
+        public string TimeZone { get; set; } = "Asia/Ho_Chi_Minh";
+        public List<string> InterestedJobTypes { get; set; } = new List<string>();
+        public List<string> PreferredLocations { get; set; } = new List<string>();
+    }
 }
