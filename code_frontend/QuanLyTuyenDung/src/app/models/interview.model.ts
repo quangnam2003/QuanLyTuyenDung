@@ -4,6 +4,7 @@ export interface Interview {
   jobTitle: string;
   candidateId: number;
   candidateName: string;
+  priority: 'Normal' | 'Urgent' | 'High' | 'Low';
   
   // Thông tin phỏng vấn
   type: 'Phone' | 'Online' | 'On-site' | 'Technical' | 'HR' | 'Final';

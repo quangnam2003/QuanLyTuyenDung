@@ -3,23 +3,35 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Job } from '../models/job.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class JobService {
-  private apiUrl = 'https://localhost:7029/api/Jobs';
+  private apiUrl = `${environment.apiUrl}/api/Jobs`;
 
   constructor(private http: HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'Đã xảy ra lỗi!';
+    
     if (error.status === 0) {
-      console.error('Lỗi kết nối:', error.error);
-      return throwError(() => new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và đảm bảo API đang chạy.'));
+      // Network error
+      errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra:\n' +
+                    '1. Kết nối mạng của bạn\n' +
+                    '2. Backend API đang chạy\n' +
+                    '3. URL API đúng (https://localhost:7029)';
     } else {
-      console.error(`Lỗi từ máy chủ: ${error.status}, `, error.error);
-      return throwError(() => new Error('Có lỗi xảy ra từ máy chủ. Vui lòng thử lại sau.'));
+      // Server-side error
+      errorMessage = `Mã lỗi: ${error.status}\nThông báo: ${error.message}`;
+      if (error.error?.message) {
+        errorMessage += `\nChi tiết: ${error.error.message}`;
+      }
     }
+    
+    console.error('JobService error:', error);
+    return throwError(() => new Error(errorMessage));
   }
 
   getAllJobs(): Observable<Job[]> {

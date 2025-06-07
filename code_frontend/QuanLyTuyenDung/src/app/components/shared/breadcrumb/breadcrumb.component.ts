@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
   selector: 'app-breadcrumb',
   standalone: true,
   imports: [CommonModule, RouterModule],
+  providers: [RouteTitleService],
   template: `
     <div class="breadcrumb-container" *ngIf="showBreadcrumb">
       <div class="breadcrumb-content">
