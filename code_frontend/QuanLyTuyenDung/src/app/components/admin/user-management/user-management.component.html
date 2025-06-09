@@ -14,17 +14,17 @@
     </thead>
     <tbody>
       <tr *ngFor="let user of users">
-        <td>{{ user.userID }}</td>
+        <td>{{ user.id }}</td>
         <td>{{ user.fullName }}</td>
         <td>{{ user.email }}</td>
         <td>
           <select
-            #roleSelect
             [value]="user.role"
-            (change)="changeRole(user, roleSelect.value)"
+            (change)="onRoleChange(user, $event)"
             aria-label="Chọn vai trò người dùng">
-            <option value="User">User</option>
             <option value="Admin">Admin</option>
+            <option value="User">User</option>
+            <option value="HR">HR</option>
           </select>
         </td>
         <td>

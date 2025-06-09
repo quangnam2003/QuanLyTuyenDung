@@ -22,9 +22,17 @@ namespace QuanLyTuyenDung.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _context.Users
+                .Select(u => new UserDto
+                {
+                    id = u.UserID,
+                    fullName = u.FullName,
+                    email = u.Email,
+                    role = u.Role
+                }).ToListAsync();
+            return Ok(users);
         }
 
         // GET: api/Users/5
@@ -63,12 +71,10 @@ namespace QuanLyTuyenDung.Controllers
             // Cập nhật các thông tin cần thiết
             user.FullName = updatedUser.FullName;
             user.Email = updatedUser.Email;
-            // Nếu có role trong request và user có quyền thay đổi role
             if (!string.IsNullOrEmpty(updatedUser.Role))
             {
                 user.Role = updatedUser.Role;
             }
-            // Thêm các trường khác nếu cần
 
             try
             {
@@ -86,7 +92,12 @@ namespace QuanLyTuyenDung.Controllers
                 }
             }
 
-            return Ok(user);
+            return Ok(new UserDto {
+                id = user.UserID,
+                fullName = user.FullName,
+                email = user.Email,
+                role = user.Role
+            });
         }
 
         // DELETE: api/Users/5
@@ -166,16 +177,19 @@ namespace QuanLyTuyenDung.Controllers
 
         // Thay đổi quyền người dùng
         [HttpPut("{id}/role")]
-        public async Task<IActionResult> UpdateUserRole(int id, [FromBody] string newRole)
+        public async Task<IActionResult> UpdateUserRole(int id, [FromBody] RoleUpdateRequest request)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
+            if (user == null) return NotFound();
 
-            user.Role = newRole;
+            var validRoles = new[] { "Admin", "User", "HR" };
+            if (!validRoles.Contains(request.Role)) return BadRequest("Vai trò không hợp lệ");
+
+            user.Role = request.Role;
             await _context.SaveChangesAsync();
             return Ok(user);
         }
+
         [HttpPut("{id}/profile")]
         public async Task<IActionResult> UpdateUserProfile(int id, [FromBody] User updatedUser)
         {
@@ -202,6 +216,19 @@ namespace QuanLyTuyenDung.Controllers
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.UserID == id);
+        }
+
+        public class UserDto
+        {
+            public int id { get; set; }
+            public string fullName { get; set; }
+            public string email { get; set; }
+            public string role { get; set; }
+        }
+
+        public class RoleUpdateRequest
+        {
+            public string Role { get; set; }
         }
     }
 }

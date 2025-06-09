@@ -2,34 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
-
-export interface AuthResponse {
-  id: number;
-  email: string;
-  fullName: string;
-  role: string;
-  token: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private apiUrl = `${environment.apiUrl}/api/Users`;
   private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -48,8 +28,12 @@ export class AuthService {
     }
   }
 
+  public get currentUserValue(): AuthResponse | null {
+    return this.currentUserSubject.value;
+  }
+
   login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('https://localhost:7029/api/Users/login', request)
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request)
       .pipe(
         tap(response => {
           try {
@@ -64,7 +48,7 @@ export class AuthService {
   }
 
   register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('https://localhost:7029/api/Users/register', request)
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, request)
       .pipe(
         tap(response => {
           try {

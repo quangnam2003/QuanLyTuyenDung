@@ -10,7 +10,15 @@ import { routes } from './app-routing.module';
 // Ignore SSL certificate in development
 const ignoreSSLInterceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
   if (!environment.production) {
-    req.headers.set('X-Skip-SSL-Verify', 'true');
+    // Clone request and modify headers
+    const modifiedReq = req.clone({
+      setHeaders: {
+        'X-Skip-SSL-Verify': 'true',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    return next(modifiedReq);
   }
   return next(req);
 };

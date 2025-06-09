@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { UserService, User } from '../../../services/user.service';
+import { UserService } from '../../../services/user.service';
+import { User } from '../../../models/user.model';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -35,7 +36,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   changeRole(user: User, newRole: string) {
-    this.userService.updateUserRole(user.userID, newRole).subscribe({
+    this.userService.updateUserRole(user.id, newRole).subscribe({
       next: () => {
         user.role = newRole;
       },
@@ -47,7 +48,7 @@ export class UserManagementComponent implements OnInit {
 
   deleteUser(user: User) {
     if (confirm(`Bạn có chắc muốn xóa người dùng ${user.fullName}?`)) {
-      this.userService.deleteUser(user.userID).subscribe({
+      this.userService.deleteUser(user.id).subscribe({
         next: () => {
           this.loadUsers();
         },
@@ -56,5 +57,19 @@ export class UserManagementComponent implements OnInit {
         }
       });
     }
+  }
+
+  onRoleChange(user: User, event: Event) {
+    const newRole = (event.target as HTMLSelectElement).value;
+    if (user.role === newRole) return;
+    this.userService.updateUserRole(user.id, newRole).subscribe({
+      next: (updatedUser) => {
+        user.role = updatedUser.role;
+        this.error = '';
+      },
+      error: () => {
+        this.error = 'Cập nhật vai trò thất bại!';
+      }
+    });
   }
 }

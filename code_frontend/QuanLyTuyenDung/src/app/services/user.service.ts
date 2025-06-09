@@ -1,17 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface User {
-  userID: number;
-  fullName: string;
-  email: string;
-  role: string;
-}
+import { User } from '../models/user.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private apiUrl = 'https://localhost:7029/api/Users';
+  private apiUrl = `${environment.apiUrl}/api/Users`;
 
   constructor(private http: HttpClient) {}
 
@@ -24,12 +19,10 @@ export class UserService {
   }
 
   updateUserRole(id: number, newRole: string): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${id}/role`, newRole, {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return this.http.put<User>(`${this.apiUrl}/${id}/role`, { role: newRole });
   }
 
   updateUserInfo(user: User): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${user.userID}`, user);
+    return this.http.put<User>(`${this.apiUrl}/${user.id}`, user);
   }
 }
