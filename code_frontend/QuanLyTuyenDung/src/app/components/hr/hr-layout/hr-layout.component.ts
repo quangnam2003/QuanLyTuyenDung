@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
@@ -74,6 +74,9 @@ import { AuthService } from '../../../services/auth.service';
               <img src="assets/images/avatar.jpg" alt="User Avatar">
               <span>{{currentUser?.fullName}}</span>
             </div>
+            <button (click)="logout()" class="btn btn-outline-danger btn-sm" style="margin-left: 12px;">
+              Đăng xuất
+            </button>
           </div>
         </header>
 
@@ -225,11 +228,16 @@ import { AuthService } from '../../../services/auth.service';
 export class HRLayoutComponent implements OnInit {
   currentUser: any;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

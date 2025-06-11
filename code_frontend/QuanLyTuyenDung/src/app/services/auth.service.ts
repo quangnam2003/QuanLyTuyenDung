@@ -36,12 +36,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request)
       .pipe(
         tap(response => {
-          try {
-            localStorage.setItem('currentUser', JSON.stringify(response));
-            localStorage.setItem('token', response.token);
-          } catch (e) {
-            // Storage access denied
-          }
+          localStorage.setItem('currentUser', JSON.stringify(response));
+          localStorage.setItem('token', response.token);
           this.currentUserSubject.next(response);
         })
       );

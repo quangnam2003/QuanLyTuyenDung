@@ -1,19 +1,19 @@
-<!-- Header -->
-<header class="header">
-  <div class="container">
-    <div class="logo" style="display: flex; gap: 15px;">
-      <img src="/topcv.png" alt="logo" style="width: 90px;"/>
-      <h1>Quản Lý Tuyển Dụng</h1>
+<!-- Topbar giống dashboard user -->
+<header class="top-bar-home">
+  <div class="container topbar-flex">
+    <div class="logo" style="display: flex; align-items: center; gap: 15px;">
+      <img src="/topcv.png" alt="logo" style="width: 60px;"/>
+      <span class="brand-title">Quản Lý Tuyển Dụng</span>
     </div>
-    <nav class="main-nav">
-      <ul>
-        <li><a routerLink="/">Trang chủ</a></li>
-        <li><a routerLink="/jobs">Việc làm</a></li>
-        <li><a routerLink="/companies">Công ty</a></li>
-        <li><a routerLink="/login">Đăng nhập</a></li>
-        <li><a routerLink="/register">Đăng ký</a></li>
-      </ul>
+    <nav class="main-nav-home">
+      <a routerLink="/" routerLinkActive="active">Trang chủ</a>
+      <a routerLink="/jobs" routerLinkActive="active">Việc làm</a>
+      <a routerLink="/companies" routerLinkActive="active">Công ty</a>
     </nav>
+    <div class="auth-buttons">
+      <a routerLink="/login" class="btn-login">Đăng nhập</a>
+      <a routerLink="/register" class="btn-register">Đăng ký</a>
+    </div>
   </div>
 </header>
 
@@ -22,43 +22,101 @@
   <div class="container">
     <div class="banner-content">
       <h2>Tìm kiếm công việc mơ ước của bạn</h2>
-      <div class="search-box">
-        <input type="text" [(ngModel)]="searchQuery" placeholder="Nhập từ khóa tìm kiếm...">
-        <button (click)="onSearch()">Tìm kiếm</button>
+      <div class="search-container">
+        <div class="search-box">
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (keypress)="onSearchKeyPress($event)"
+            placeholder="Nhập từ khóa tìm kiếm: tên công việc, công ty, địa điểm...">
+          <button (click)="onSearch()" [disabled]="loading">
+            <i class="bi bi-search" *ngIf="!loading"></i>
+            <i class="bi bi-arrow-clockwise" *ngIf="loading"></i>
+            {{ loading ? 'Đang tìm...' : 'Tìm kiếm' }}
+          </button>
+        </div>
+        <button 
+          *ngIf="isSearching" 
+          (click)="clearSearch()" 
+          class="clear-search-btn">
+          <i class="bi bi-x-circle"></i> Xóa tìm kiếm
+        </button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Featured Jobs -->
+<!-- Featured Jobs / Search Results -->
 <section class="featured-jobs">
   <div class="container">
-    <h2>Việc làm nổi bật</h2>
+    <div class="section-header">
+      <h2 *ngIf="!isSearching">Việc làm nổi bật</h2>
+      <div *ngIf="isSearching" class="search-results-header">
+        <h2>Kết quả tìm kiếm</h2>
+        <p *ngIf="!loading && !error">
+          Tìm thấy <strong>{{searchResultsCount}}</strong> công việc cho từ khóa "<strong>{{searchQuery}}</strong>"
+        </p>
+      </div>
+    </div>
     
     <!-- Loading State -->
     <div *ngIf="loading" class="loading">
-      <p>Đang tải dữ liệu...</p>
+      <div class="loading-spinner"></div>
+      <p>{{ isSearching ? 'Đang tìm kiếm...' : 'Đang tải dữ liệu...' }}</p>
     </div>
 
     <!-- Error State -->
     <div *ngIf="error" class="error">
+      <i class="bi bi-exclamation-triangle"></i>
       <p>{{error}}</p>
+      <button (click)="isSearching ? onSearch() : loadFeaturedJobs()" class="retry-btn">
+        Thử lại
+      </button>
     </div>
 
     <!-- Jobs List -->
-    <div class="job-list" *ngIf="!loading && !error">
+    <div class="job-list" *ngIf="!loading && !error && featuredJobs.length > 0">
       <div class="job-card" *ngFor="let job of featuredJobs">
-        <h3>{{job.title}}</h3>
-        <p class="company">{{job.company}}</p>
-        <p class="location">{{job.location}}</p>
-        <p class="salary">{{job.salary}}</p>
-        <button (click)="viewJobDetails(job)">Xem chi tiết</button>
+        <div class="job-header">
+          <h3>{{job.title}}</h3>
+          <span class="job-type">{{job.type}}</span>
+        </div>
+        <div class="job-info">
+          <div class="company-info">
+            <i class="bi bi-building"></i>
+            <span>{{job.company}}</span>
+          </div>
+          <div class="location-info">
+            <i class="bi bi-geo-alt"></i>
+            <span>{{job.location}}</span>
+          </div>
+          <div class="salary-info" *ngIf="job.salary">
+            <i class="bi bi-cash-stack"></i>
+            <span>{{job.salary}}</span>
+          </div>
+        </div>
+        <div class="job-description" *ngIf="job.description">
+          <p>{{job.description}}</p>
+        </div>
+        <div class="job-footer">
+          <div class="job-date" *ngIf="job.createdAt">
+            <small>
+              <i class="bi bi-clock"></i>
+              Đăng {{ job.createdAt | date:'dd/MM/yyyy' }}
+            </small>
+          </div>
+          <button (click)="viewJobDetails(job)" class="view-details-btn">
+            <i class="bi bi-eye"></i>
+            Xem chi tiết
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- No Results -->
-    <div *ngIf="!loading && !error && featuredJobs.length === 0" class="no-results">
-      <p>Không tìm thấy việc làm phù hợp.</p>
+    <div *ngIf="!loading && !error && featuredJobs.length === 0 && !isSearching" class="no-results">
+      <i class="bi bi-briefcase"></i>
+      <p>Chưa có việc làm nổi bật nào.</p>
     </div>
   </div>
 </section>

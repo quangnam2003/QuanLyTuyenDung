@@ -59,7 +59,8 @@ namespace QuanLyTuyenDung.DBContext
 
                 entity.Property(e => e.Status)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(50)
+                    .HasDefaultValue("Active");
 
                 entity.Property(e => e.Department)
                     .IsRequired()
@@ -79,6 +80,12 @@ namespace QuanLyTuyenDung.DBContext
 
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(100);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.UpdatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(e => e.User)
                     .WithMany(e => e.PostedJobs)

@@ -54,7 +54,7 @@ import { LoginRequest } from '../../../models/auth.model';
             <button
               type="submit"
               class="btn btn-primary w-100"
-              [disabled]="loginForm.invalid || isLoading"
+              [disabled]="isLoading"
             >
               {{ isLoading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
             </button>
@@ -197,6 +197,7 @@ export class LoginComponent {
 
     this.authService.login(this.loginRequest).subscribe({
       next: (response: any) => {
+        console.log('Login response:', response);
         if (response.role === 'Admin') {
           this.router.navigate(['/admin']);
         } else if (response.role === 'HR') {

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { AuthResponse } from '../../../models/auth.model';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-layout',
@@ -12,161 +13,127 @@ import { HttpClient } from '@angular/common/http';
   template: `
     <div class="admin-container">
       <!-- Sidebar -->
-      <nav class="admin-sidebar">
-        <div class="sidebar-header">
-          <h3>Admin Panel</h3>
-        </div>
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">
-              <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
-            <a routerLink="/admin/jobs" routerLinkActive="active" class="nav-link">
-              <i class="bi bi-briefcase"></i> Quản lý công việc
-            </a>
-          </li>
-          <li class="nav-item">
-            <a routerLink="/admin/candidates" routerLinkActive="active" class="nav-link">
-              <i class="bi bi-people"></i> Quản lý ứng viên
-            </a>
-          </li>
-          <li class="nav-item">
-            <a routerLink="/admin/interviews" routerLinkActive="active" class="nav-link">
-              <i class="bi bi-calendar-check"></i> Quản lý phỏng vấn
-            </a>
-          </li>
-          <li class="nav-item">
-            <a routerLink="/admin/reports" routerLinkActive="active" class="nav-link">
-              <i class="bi bi-graph-up"></i> Báo cáo thống kê
-            </a>
-          </li>
-          <li class="nav-item">
-            <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
-              <i class="bi bi-person-gear"></i> Quản lý người dùng
-            </a>
-          </li>
+      <nav class="sidebar">
+        <div class="logo">Admin Portal</div>
+        <ul>
+          <li routerLinkActive="active"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li routerLinkActive="active"><a routerLink="/admin/jobs">Quản lý công việc</a></li>
+          <li routerLinkActive="active"><a routerLink="/admin/users">Quản lý người dùng</a></li>
+          <li routerLinkActive="active"><a routerLink="/admin/reports">Báo cáo</a></li>
+          <li routerLinkActive="active"><a routerLink="/admin/settings">Cài đặt</a></li>
         </ul>
       </nav>
 
-      <!-- Main Content -->
-      <main class="admin-main">
-        <header class="admin-header">
-          <div class="header-content">
-            <h2>Quản lý tuyển dụng</h2>
-            <div class="user-menu">
-              <nav>
-                <ng-container *ngIf="isLoggedIn; else guest">
-                  <span>Xin chào, {{ userName }}</span>
-                  <button (click)="logout()">Đăng xuất</button>
-                </ng-container>
-                <ng-template #guest>
-                  <a routerLink="/login">Đăng nhập</a>
-                  <a routerLink="/register">Đăng ký</a>
-                </ng-template>
-              </nav>
-            </div>
+      <!-- Main -->
+      <div class="main">
+        <header class="header">
+          <input type="text" placeholder="Tìm kiếm..." class="search-box" />
+          <div class="header-right">
+            <span>{{ userName }}</span>
+            <button (click)="logout()" class="btn btn-outline-danger btn-sm" style="margin-left: 12px;">Đăng xuất</button>
           </div>
         </header>
-        <div class="admin-content">
+        <div class="content">
           <router-outlet></router-outlet>
         </div>
-      </main>
+      </div>
     </div>
   `,
   styles: [`
-    .admin-container {
-      display: flex;
-      min-height: 100vh;
+    .admin-container { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px; background: #223354; color: #fff; padding: 1.5rem 0;
+      display: flex; flex-direction: column; align-items: center;
     }
-
-    .admin-sidebar {
-      width: 250px;
-      background-color: #2c3e50;
-      color: white;
-      padding: 1rem;
+    .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 2rem; }
+    .sidebar ul { list-style: none; padding: 0; width: 100%; }
+    .sidebar li { width: 100%; }
+    .sidebar a {
+      display: block; color: #fff; padding: 1rem 2rem; text-decoration: none;
+      transition: background 0.2s;
     }
-
-    .sidebar-header {
-      padding: 1rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 1rem;
+    .sidebar a:hover, .sidebar .active a { background: #1a2540; }
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #fff; padding: 1rem 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     }
-
-    .sidebar-header h3 {
-      margin: 0;
-      font-size: 1.25rem;
-    }
-
-    .nav-link {
-      color: rgba(255,255,255,0.8);
-      padding: 0.75rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.3s;
-    }
-
-    .nav-link:hover {
-      color: white;
-      background-color: rgba(255,255,255,0.1);
-    }
-
-    .nav-link.active {
-      color: white;
-      background-color: rgba(255,255,255,0.2);
-    }
-
-    .nav-link i {
-      font-size: 1.1rem;
-    }
-
-    .admin-main {
-      flex: 1;
-      background-color: #f8f9fa;
-    }
-
-    .admin-header {
-      background-color: white;
-      padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .user-menu {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .user-name {
-      font-weight: 500;
-    }
-
-    .admin-content {
+    .search-box { width: 300px; padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid #ddd; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .content { padding: 2rem; background: #f8f9fa; flex: 1; }
+    .dashboard-container {
       padding: 2rem;
+      background: #f8f9fa;
+    }
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .dashboard-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 1.5rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      position: relative;
+      min-height: 160px;
+    }
+    .icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .value {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+    .label {
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+    .detail-link {
+      color: #007bff;
+      text-decoration: none;
+      font-size: 0.95rem;
+      margin-top: auto;
+    }
+    .card-blue .icon { color: #1976d2; }
+    .card-green .icon { color: #43a047; }
+    .card-yellow .icon { color: #fbc02d; }
+    .card-purple .icon { color: #8e24aa; }
+    .card-blue { border-left: 5px solid #1976d2; }
+    .card-green { border-left: 5px solid #43a047; }
+    .card-yellow { border-left: 5px solid #fbc02d; }
+    .card-purple { border-left: 5px solid #8e24aa; }
+    .dashboard-section {
+      margin-top: 2rem;
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .empty-state {
+      color: #aaa;
+      font-style: italic;
     }
   `],
   providers: [AuthService]
 })
 export class AdminLayoutComponent {
-  isLoggedIn = false;
   userName = '';
 
-  constructor(private authService: AuthService, private http: HttpClient) {
-    this.authService.currentUser$.subscribe((user: any) => {
-      this.isLoggedIn = !!user;
-      this.userName = user?.user?.firstName || user?.fullName || user?.userName || '';
+  constructor(private authService: AuthService, private router: Router) {
+    this.authService.currentUser$.subscribe(user => {
+      this.userName = user?.fullName || '';
     });
   }
 
   logout() {
     this.authService.logout();
+    this.router.navigate(['/login']);
   }
 } 

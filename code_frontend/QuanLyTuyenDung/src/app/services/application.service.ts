@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Application } from '../models/application.model';
 import { environment } from '../../environments/environment';
+import { Applicant } from '../models/application.model';
 
 @Injectable({
   providedIn: 'root'
@@ -115,5 +116,34 @@ export class ApplicationService {
   bulkDelete(applicationIds: number[]): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/bulk`, { body: { applicationIds } })
       .pipe(catchError(this.handleError));
+  }
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ApplicantService {
+  private apiUrl = `${environment.apiUrl}/api/applicants`;
+
+  constructor(private http: HttpClient) {}
+
+  getAllApplicants(): Observable<Applicant[]> {
+    return this.http.get<Applicant[]>(this.apiUrl);
+  }
+
+  deleteApplicant(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getApplicantById(id: number): Observable<Applicant> {
+    return this.http.get<Applicant>(`${this.apiUrl}/${id}`);
+  }
+
+  updateApplicant(applicant: Applicant): Observable<Applicant> {
+    return this.http.put<Applicant>(`${this.apiUrl}/${applicant.id}`, applicant);
+  }
+
+  createApplicant(applicant: Applicant): Observable<Applicant> {
+    return this.http.post<Applicant>(this.apiUrl, applicant);
   }
 }

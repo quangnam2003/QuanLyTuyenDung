@@ -1,0 +1,32 @@
+<div class="container mt-4">
+  <h2>Quản lý ứng viên</h2>
+  <div *ngIf="isLoading">Đang tải...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <table class="table table-bordered table-hover" *ngIf="applicants.length">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Họ tên</th>
+        <th>Email</th>
+        <th>CV</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let applicant of applicants">
+        <td>{{ applicant.id }}</td>
+        <td>{{ applicant.fullName }}</td>
+        <td>{{ applicant.email }}</td>
+        <td>
+          <a [href]="applicant.cvUrl" target="_blank">Xem CV</a>
+        </td>
+        <td>
+          <button class="btn btn-danger btn-sm" (click)="deleteApplicant(applicant)">Xóa</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="!isLoading && applicants.length === 0" class="text-center text-muted">
+    Không có ứng viên nào.
+  </div>
+</div>

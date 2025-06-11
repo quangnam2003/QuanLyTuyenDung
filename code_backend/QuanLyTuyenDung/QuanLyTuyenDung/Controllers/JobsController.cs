@@ -2,8 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyTuyenDung.Models;
 using QuanLyTuyenDung.DBContext;
+using QuanLyTuyenDung.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace QuanLyTuyenDung.Controllers
 {
@@ -12,10 +14,14 @@ namespace QuanLyTuyenDung.Controllers
     public class JobsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IJobService _jobService;
+        private readonly ILogger<JobsController> _logger;
 
-        public JobsController(ApplicationDbContext context)
+        public JobsController(ApplicationDbContext context, IJobService jobService, ILogger<JobsController> logger)
         {
             _context = context;
+            _jobService = jobService;
+            _logger = logger;
         }
 
         // GET: api/Jobs
@@ -374,6 +380,31 @@ namespace QuanLyTuyenDung.Controllers
 
         public class UpdateJobRequest : CreateJobRequest
         {
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Job>> CreateJob([FromBody] Job job)
+        {
+            try
+            {
+                _logger.LogInformation("Creating new job: {@Job}", job);
+                
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Invalid model state for job creation");
+                    return BadRequest(ModelState);
+                }
+
+                var createdJob = await _jobService.CreateJobAsync(job);
+                _logger.LogInformation("Job created successfully with ID: {JobId}", createdJob.JobID);
+                
+                return CreatedAtAction(nameof(GetJob), new { id = createdJob.JobID }, createdJob);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating job");
+                return StatusCode(500, new { message = "Internal server error while creating job" });
+            }
         }
     }
 }

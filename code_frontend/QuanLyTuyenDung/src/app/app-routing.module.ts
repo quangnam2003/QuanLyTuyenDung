@@ -16,8 +16,9 @@ import { UserInterfaceComponent } from './components/user/user-interface/user-in
 import { UserProfileComponent } from './components/user/user-profile/user-profile.component';
 import { UserDashboardComponent } from './components/user/user-dashboard/user-dashboard.component';
 import { UserApplicationsComponent } from './components/user/user-applications/user-applications.component';
-import { UserSavedJobsComponent } from './components/user/user-saved-jobs/user-saved-jobs.component';
 import { UserSettingsComponent } from './components/user/user-settings/user-settings.component';
+import { JobsComponent } from './components/jobs/jobs.component';
+import { CompaniesComponent } from './components/companies/companies.component';
 
 // HR Components
 import { HRLayoutComponent } from './components/hr/hr-layout/hr-layout.component';
@@ -29,8 +30,16 @@ import { HRJobManagementComponent } from './components/hr/hr-job-management/hr-j
 import { HRReportsComponent } from './components/hr/hr-reports/hr-reports.component';
 import { HRSettingsComponent } from './components/hr/hr-settings/hr-settings.component';
 
+// Admin Components
+import { AdminDashboardComponent } from './components/admin/admin-dashboard/admin-dashboard.component';
+import { ApplicantManagementComponent } from './components/admin/applicant-management/applicant-management.component';
+import { AdminReportComponent } from './components/admin/report/admin-report.component';
+import { AdminSettingsComponent } from './components/admin/settings/admin-settings.component';
+
 export const routes: Routes = [
   { path: '', component: HomepageComponent },
+  { path: 'jobs', component: JobsComponent },
+  { path: 'companies', component: CompaniesComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   
@@ -41,9 +50,12 @@ export const routes: Routes = [
     canActivate: [AuthGuard, AdminGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: JobManagementComponent },
+      { path: 'dashboard', component: AdminDashboardComponent },
       { path: 'jobs', component: JobManagementComponent },
       { path: 'users', component: UserManagementComponent },
+      { path: 'applicants', component: ApplicantManagementComponent },
+      { path: 'reports', component: AdminReportComponent },
+      { path: 'settings', component: AdminSettingsComponent },
       // Các route khác sẽ được thêm sau
       // { path: 'candidates', component: CandidateManagementComponent },
       // { path: 'interviews', component: InterviewManagementComponent },
@@ -157,11 +169,7 @@ export const routes: Routes = [
         component: UserApplicationsComponent,
         data: { title: 'Đơn ứng tuyển của tôi' }
       },
-      { 
-        path: 'saved-jobs', 
-        component: UserSavedJobsComponent,
-        data: { title: 'Việc làm đã lưu' }
-      },
+      
       { 
         path: 'settings', 
         component: UserSettingsComponent,

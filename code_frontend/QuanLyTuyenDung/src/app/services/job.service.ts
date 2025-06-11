@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { Job } from '../models/job.model';
 import { environment } from '../../environments/environment';
 
@@ -45,7 +45,50 @@ export class JobService {
   }
 
   searchJobs(query: string): Observable<Job[]> {
-    return this.http.get<Job[]>(`${this.apiUrl}/search?q=${query}`)
+    const params = new HttpParams().set('q', query);
+    return this.http.get<Job[]>(`${this.apiUrl}/search`, { params })
+      .pipe(catchError(this.handleError));
+  }
+
+  // Tìm kiếm và lọc công việc với nhiều tham số
+  searchAndFilterJobs(filters: {
+    query?: string;
+    type?: string;
+    location?: string;
+    company?: string;
+    salaryMin?: number;
+    salaryMax?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Observable<Job[]> {
+    let params = new HttpParams();
+    
+    if (filters.query && filters.query.trim()) {
+      params = params.set('q', filters.query.trim());
+    }
+    if (filters.type) {
+      params = params.set('type', filters.type);
+    }
+    if (filters.location) {
+      params = params.set('location', filters.location);
+    }
+    if (filters.company) {
+      params = params.set('company', filters.company);
+    }
+    if (filters.salaryMin) {
+      params = params.set('salaryMin', filters.salaryMin.toString());
+    }
+    if (filters.salaryMax) {
+      params = params.set('salaryMax', filters.salaryMax.toString());
+    }
+    if (filters.sortBy) {
+      params = params.set('sortBy', filters.sortBy);
+    }
+    if (filters.sortOrder) {
+      params = params.set('sortOrder', filters.sortOrder);
+    }
+
+    return this.http.get<Job[]>(`${this.apiUrl}/filter`, { params })
       .pipe(catchError(this.handleError));
   }
 
@@ -55,8 +98,30 @@ export class JobService {
   }
 
   createJob(job: Job): Observable<Job> {
-    return this.http.post<Job>(this.apiUrl, job)
-      .pipe(catchError(this.handleError));
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
+    // Log request data
+    console.log('Creating job with data:', job);
+
+    return this.http.post<Job>(this.apiUrl, job, { 
+      headers,
+      observe: 'response'  // Get full response
+    }).pipe(
+      map(response => {
+        console.log('Server response:', response);
+        return response.body as Job;
+      }),
+      catchError(error => {
+        console.error('Full error details:', error);
+        if (error.status === 500) {
+          return throwError(() => new Error('Lỗi máy chủ nội bộ. Vui lòng thử lại sau.'));
+        }
+        return throwError(() => new Error(error.error?.message || 'Có lỗi xảy ra khi tạo công việc'));
+      })
+    );
   }
 
   updateJob(id: number, job: Job): Observable<Job> {

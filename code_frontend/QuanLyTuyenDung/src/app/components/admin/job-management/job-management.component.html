@@ -1,150 +1,183 @@
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Quản lý công việc tuyển dụng</h2>
-    <button class="btn btn-primary" (click)="resetForm()" *ngIf="!isEditing">
-      <i class="bi bi-plus-circle"></i> Thêm công việc mới
+<div class="job-management-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Quản lý công việc tuyển dụng</h2>
+      <p class="subtitle">Tổng cộng: {{ allJobs.length }} việc làm</p>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section">
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <i class="bi bi-search"></i>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (input)="onSearchInput()"
+        (keypress)="onSearchKeyPress($event)"
+        placeholder="Tìm kiếm theo tiêu đề, công ty, địa điểm, mô tả..."
+        class="form-control">
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <select [(ngModel)]="selectedType" (change)="applyFilters()" class="form-select" aria-label="Lọc theo loại hình">
+        <option value="">Tất cả loại hình</option>
+        <option *ngFor="let type of availableTypes" [value]="type">{{ type }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedLocation" (change)="applyFilters()" class="form-select" aria-label="Lọc theo địa điểm">
+        <option value="">Tất cả địa điểm</option>
+        <option *ngFor="let location of availableLocations" [value]="location">{{ location }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedCompany" (change)="applyFilters()" class="form-select" aria-label="Lọc theo công ty">
+        <option value="">Tất cả công ty</option>
+        <option *ngFor="let company of availableCompanies" [value]="company">{{ company }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="form-select" aria-label="Lọc theo trạng thái">
+        <option value="">Tất cả trạng thái</option>
+        <option *ngFor="let status of availableStatuses" [value]="status">{{ status }}</option>
+      </select>
+
+      <select [(ngModel)]="sortBy" (change)="applySorting()" class="form-select" aria-label="Sắp xếp theo">
+        <option value="newest">Mới nhất</option>
+        <option value="oldest">Cũ nhất</option>
+        <option value="title">Tên A-Z</option>
+        <option value="company">Công ty A-Z</option>
+        <option value="salary">Lương cao nhất</option>
+      </select>
+
+      <button (click)="clearAllFilters()" class="btn btn-secondary" *ngIf="hasActiveFilters()">
+        <i class="bi bi-x-circle"></i> Xóa bộ lọc
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Filters Display -->
+  <div class="active-filters" *ngIf="hasActiveFilters()">
+    <span class="filter-label">Đang lọc:</span>
+    <span class="filter-tag" *ngIf="searchQuery">
+      <i class="bi bi-search"></i> {{ searchQuery }}
+    </span>
+    <span class="filter-tag" *ngIf="selectedType">
+      <i class="bi bi-briefcase"></i> {{ selectedType }}
+    </span>
+    <span class="filter-tag" *ngIf="selectedLocation">
+      <i class="bi bi-geo-alt"></i> {{ selectedLocation }}
+    </span>
+    <span class="filter-tag" *ngIf="selectedCompany">
+      <i class="bi bi-building"></i> {{ selectedCompany }}
+    </span>
+    <span class="filter-tag" *ngIf="selectedStatus">
+      <i class="bi bi-flag"></i> {{ selectedStatus }}
+    </span>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p>Đang tải danh sách công việc...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <i class="bi bi-exclamation-triangle"></i>
+    <p>{{ error }}</p>
+    <button (click)="loadJobs()" class="btn btn-primary">
+      <i class="bi bi-arrow-clockwise"></i> Thử lại
     </button>
   </div>
 
-  <!-- Form thêm/sửa công việc -->
-  <div class="card mb-4" *ngIf="isEditing || !selectedJob">
-    <div class="card-header bg-primary text-white">
-      {{ isEditing ? 'Sửa công việc' : 'Thêm công việc mới' }}
-    </div>
-    <div class="card-body">
-      <div class="add-job-header">Thêm công việc mới</div>
-      <form (ngSubmit)="isEditing ? updateJob() : createJob()" #jobForm="ngForm">
-        <div class="form-row">
-          <div class="col-md-6 mb-3">
-            <label for="title" class="form-label">Tiêu đề <span class="required">*</span></label>
-            <input type="text" class="form-control" id="title" 
-                   [ngModel]="isEditing ? selectedJob?.title : newJob.title"
-                   (ngModelChange)="isEditing ? (selectedJob ? selectedJob.title = $event : null) : newJob.title = $event"
-                   name="title" required>
-          </div>
-          <div class="col-md-6 mb-3">
-            <label for="company" class="form-label">Công ty <span class="required">*</span></label>
-            <input type="text" class="form-control" id="company" 
-                   [ngModel]="isEditing ? selectedJob?.company : newJob.company"
-                   (ngModelChange)="isEditing ? (selectedJob ? selectedJob.company = $event : null) : newJob.company = $event"
-                   name="company" required>
-          </div>
-        </div>
+  <!-- Jobs Table -->
+  <div class="table-container" *ngIf="!loading && !error">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tiêu đề</th>
+          <th>Công ty</th>
+          <th>Địa điểm</th>
+          <th>Loại hình</th>
+          <th>Mức lương</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let job of paginatedJobs">
+          <td>{{ job.id }}</td>
+          <td>
+            <strong>{{ job.title }}</strong>
+          </td>
+          <td>{{ job.company }}</td>
+          <td>{{ job.location }}</td>
+          <td>
+            <span [ngClass]="getJobTypeClass(job.type)">{{ job.type }}</span>
+          </td>
+          <td>{{ job.salary || 'Thỏa thuận' }}</td>
+          <td>
+            <span [ngClass]="getStatusClass(job.status)">{{ job.status }}</span>
+          </td>
+          <td>{{ formatDate(job.createdAt) }}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn btn-sm btn-info" (click)="viewJobDetails(job)" title="Xem chi tiết">
+                <i class="bi bi-eye"></i>
+              </button>
+              <button class="btn btn-sm btn-primary" (click)="editJob(job)" title="Sửa">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" (click)="deleteJob(job.id!)" title="Xóa">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-        <div class="form-row">
-          <div class="col-md-6 mb-3">
-            <label for="location" class="form-label">Địa điểm <span class="required">*</span></label>
-            <input type="text" class="form-control" id="location" 
-                   [ngModel]="isEditing ? selectedJob?.location : newJob.location"
-                   (ngModelChange)="isEditing ? (selectedJob ? selectedJob.location = $event : null) : newJob.location = $event"
-                   name="location" required>
-          </div>
-          <div class="col-md-6 mb-3">
-            <label for="salary" class="form-label">Mức lương <span class="required">*</span></label>
-            <input type="text" class="form-control" id="salary" 
-                   [ngModel]="isEditing ? selectedJob?.salary : newJob.salary"
-                   (ngModelChange)="isEditing ? (selectedJob ? selectedJob.salary = $event : null) : newJob.salary = $event"
-                   name="salary" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="col-md-6 mb-3">
-            <label for="type" class="form-label">Loại công việc <span class="required">*</span></label>
-            <select class="form-select" id="type" 
-                    [ngModel]="isEditing ? selectedJob?.type : newJob.type"
-                    (ngModelChange)="isEditing ? (selectedJob ? selectedJob.type = $event : null) : newJob.type = $event"
-                    name="type" required>
-              <option value="Full-time">Full-time</option>
-              <option value="Part-time">Part-time</option>
-              <option value="Contract">Contract</option>
-              <option value="Internship">Internship</option>
-            </select>
-          </div>
-          <div class="col-md-6 mb-3">
-            <label for="status" class="form-label">Trạng thái <span class="required">*</span></label>
-            <select class="form-select" id="status" 
-                    [ngModel]="isEditing ? selectedJob?.status : newJob.status"
-                    (ngModelChange)="isEditing ? (selectedJob ? selectedJob.status = $event : null) : newJob.status = $event"
-                    name="status" required>
-              <option value="Active">Active</option>
-              <option value="Closed">Closed</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="mb-3">
-          <label for="description" class="form-label">Mô tả công việc <span class="required">*</span></label>
-          <textarea class="form-control" id="description" rows="3" 
-                    [ngModel]="isEditing ? selectedJob?.description : newJob.description"
-                    (ngModelChange)="isEditing ? (selectedJob ? selectedJob.description = $event : null) : newJob.description = $event"
-                    name="description" required></textarea>
-        </div>
-
-        <div class="mb-3">
-          <label for="requirements" class="form-label">Yêu cầu <span class="required">*</span></label>
-          <textarea class="form-control" id="requirements" rows="3" 
-                    [ngModel]="isEditing ? selectedJob?.requirements : newJob.requirements"
-                    (ngModelChange)="isEditing ? (selectedJob ? selectedJob.requirements = $event : null) : newJob.requirements = $event"
-                    name="requirements" required></textarea>
-        </div>
-
-        <div class="d-flex justify-content-end">
-          <button type="button" class="btn btn-secondary me-2" (click)="resetForm()">Hủy</button>
-          <button type="submit" class="btn btn-primary" [disabled]="!jobForm.form.valid">
-            {{ isEditing ? 'Cập nhật' : 'Thêm mới' }}
-          </button>
-        </div>
-      </form>
+    <!-- No Results -->
+    <div *ngIf="paginatedJobs.length === 0" class="no-results">
+      <i class="bi bi-inbox"></i>
+      <h5>Không tìm thấy công việc nào</h5>
+      <p *ngIf="hasActiveFilters()">Hãy thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+      <p *ngIf="!hasActiveFilters()">Chưa có công việc nào trong hệ thống</p>
     </div>
   </div>
 
-  <!-- Bảng hiển thị danh sách công việc -->
-  <div class="card">
-    <div class="card-header bg-primary text-white">
-      Danh sách công việc
-    </div>
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th>Tiêu đề</th>
-              <th>Công ty</th>
-              <th>Địa điểm</th>
-              <th>Mức lương</th>
-              <th>Loại</th>
-              <th>Trạng thái</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let job of jobs">
-              <td>{{ job.title }}</td>
-              <td>{{ job.company }}</td>
-              <td>{{ job.location }}</td>
-              <td>{{ job.salary }}</td>
-              <td>{{ job.type }}</td>
-              <td>
-                <span [class]="job.status === 'Active' ? 'badge bg-success' : 'badge bg-danger'">
-                  {{ job.status }}
-                </span>
-              </td>
-              <td>
-                <button class="btn btn-sm btn-primary me-2" (click)="editJob(job)">
-                  <i class="bi bi-pencil"></i> Sửa
-                </button>
-                <button class="btn btn-sm btn-danger" (click)="deleteJob(job.id!)">
-                  <i class="bi bi-trash"></i> Xóa
-                </button>
-              </td>
-            </tr>
-            <tr *ngIf="jobs.length === 0">
-              <td colspan="7" class="text-center">Không có dữ liệu</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="!loading && !error && totalPages > 1">
+    <nav>
+      <ul class="pagination">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <a class="page-link" (click)="changePage(currentPage - 1)" href="javascript:void(0)">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+        
+        <li class="page-item" *ngFor="let page of [].constructor(totalPages); let i = index"
+            [class.active]="currentPage === i + 1">
+          <a class="page-link" (click)="changePage(i + 1)" href="javascript:void(0)">{{ i + 1 }}</a>
+        </li>
+        
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <a class="page-link" (click)="changePage(currentPage + 1)" href="javascript:void(0)">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    
+    <div class="page-info">
+      Trang {{ currentPage }} / {{ totalPages }} - 
+      Hiển thị {{ paginatedJobs.length }} trong tổng số {{ filteredJobs.length }} kết quả
     </div>
   </div>
 </div> 

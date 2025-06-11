@@ -37,14 +37,20 @@ namespace QuanLyTuyenDung.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<IActionResult> GetUserById(int id)
         {
+            // Kiểm tra người dùng hiện tại (lấy từ token, session, hoặc User.Identity)
+            var currentUser = await _context.Users.FindAsync(User.Identity.Name); // hoặc lấy từ token
+            if (currentUser == null) return Unauthorized();
+
+            // Kiểm tra quyền: chỉ Admin hoặc chính user đó mới được phép xem thông tin chi tiết
+            if (currentUser.Role != "Admin" && currentUser.UserID != id) return Forbid();
+
+            // Kiểm tra user cần lấy có tồn tại không
             var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return user;
+            if (user == null) return NotFound();
+
+            return Ok(user);
         }
 
         // POST: api/Users
@@ -54,7 +60,7 @@ namespace QuanLyTuyenDung.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.UserID }, user);
+            return CreatedAtAction(nameof(GetUserById), new { id = user.UserID }, user);
         }
 
         // PUT: api/Users/5
@@ -179,12 +185,22 @@ namespace QuanLyTuyenDung.Controllers
         [HttpPut("{id}/role")]
         public async Task<IActionResult> UpdateUserRole(int id, [FromBody] RoleUpdateRequest request)
         {
+            // Kiểm tra người dùng hiện tại (ví dụ: lấy từ token, session, hoặc User.Identity)
+            var currentUser = await _context.Users.FindAsync(User.Identity.Name); // hoặc lấy từ token
+            if (currentUser == null) return Unauthorized();
+
+            // Kiểm tra quyền: chỉ Admin mới được phép cập nhật role
+            if (currentUser.Role != "Admin") return Forbid();
+
+            // Kiểm tra user cần cập nhật có tồn tại không
             var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound();
 
+            // Kiểm tra role hợp lệ
             var validRoles = new[] { "Admin", "User", "HR" };
             if (!validRoles.Contains(request.Role)) return BadRequest("Vai trò không hợp lệ");
 
+            // Cập nhật role
             user.Role = request.Role;
             await _context.SaveChangesAsync();
             return Ok(user);

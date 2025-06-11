@@ -76,3 +76,10 @@ export interface Application {
       tags?: string[];
     };
   }
+
+export interface Applicant {
+  id: number;
+  fullName: string;
+  email: string;
+  cvUrl: string;
+}

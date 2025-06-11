@@ -21,9 +21,6 @@ import { Candidate } from '../../../models/candidate.model';
           <button class="btn btn-outline-primary" (click)="exportCandidates()">
             <i class="bi bi-download"></i> Xuất danh sách
           </button>
-          <button class="btn btn-primary" (click)="showAddModal = true">
-            <i class="bi bi-person-plus"></i> Thêm ứng viên
-          </button>
         </div>
       </div>
 
@@ -328,10 +325,7 @@ import { Candidate } from '../../../models/candidate.model';
         <div class="empty-state" *ngIf="filteredCandidates.length === 0">
           <i class="bi bi-people"></i>
           <h3>Không tìm thấy ứng viên</h3>
-          <p>Hãy thử thay đổi điều kiện tìm kiếm hoặc thêm ứng viên mới</p>
-          <button class="btn btn-primary" (click)="showAddModal = true">
-            <i class="bi bi-person-plus"></i> Thêm ứng viên
-          </button>
+          <p>Hãy thử thay đổi điều kiện tìm kiếm</p>
         </div>
       </div>
 

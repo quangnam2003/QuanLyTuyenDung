@@ -6,7 +6,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { JobManagementComponent } from './components/admin/job-management/job-management.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AdminSettingsComponent } from './components/admin/settings/admin-settings.component';
 
 @NgModule({
   imports: [
@@ -16,9 +16,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     HttpClientModule,
     CommonModule,
     AppComponent,
-    JobManagementComponent
-  ],
-  declarations: [
+    JobManagementComponent,
+    AdminSettingsComponent
   ]
 })
 export class AppModule { }

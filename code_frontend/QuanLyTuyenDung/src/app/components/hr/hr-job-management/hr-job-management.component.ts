@@ -1661,31 +1661,47 @@ export class HRJobManagementComponent implements OnInit {
     if (this.jobForm.valid) {
       const formValue = this.jobForm.value;
       
+      // Format dữ liệu trước khi gửi
       const jobData: Partial<Job> = {
-        ...formValue,
-        skills: formValue.skills.split(',').map((skill: string) => skill.trim()),
-        applicationDeadline: new Date(formValue.applicationDeadline)
+        title: formValue.title,
+        description: formValue.description,
+        requirements: formValue.requirements,
+        benefits: formValue.benefits || '',
+        salary: formValue.salary,
+        location: formValue.location,
+        type: formValue.type,
+        status: 'Active',
+        department: formValue.department,
+        numberOfPositions: formValue.numberOfPositions,
+        applicationDeadline: new Date(formValue.applicationDeadline),
+        experienceRequired: formValue.experienceRequired,
+        education: formValue.education,
+        skills: formValue.skills ? formValue.skills.split(',').map((s: string) => s.trim()) : [],
+        company: 'Your Company Name',
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
-      if (this.showEditModal && this.selectedJob) {
-        // Update existing job
-        this.jobService.updateJob(this.selectedJob.id!, jobData as Job).subscribe({
-          next: () => {
-            this.loadJobs();
-            this.closeModal();
-          },
-          error: (error) => console.error('Error updating job:', error)
-        });
-      } else {
-        // Create new job
-        this.jobService.createJob(jobData as Job).subscribe({
-          next: () => {
-            this.loadJobs();
-            this.closeModal();
-          },
-          error: (error) => console.error('Error creating job:', error)
-        });
-      }
+      console.log('Sending job data:', jobData);
+
+      this.jobService.createJob(jobData as Job).subscribe({
+        next: (newJob) => {
+          console.log('Job created successfully:', newJob);
+          this.jobs.push(newJob);
+          this.applyFilters();
+          this.closeModal();
+          alert('Công việc đã được tạo thành công!');
+        },
+        error: (error) => {
+          console.error('Error creating job:', error);
+          alert(`Lỗi khi tạo công việc: ${error.message}`);
+        }
+      });
+    } else {
+      const invalidFields = Object.keys(this.jobForm.controls)
+        .filter(key => this.jobForm.controls[key].invalid)
+        .join(', ');
+      alert(`Vui lòng điền đầy đủ các trường: ${invalidFields}`);
     }
   }
 

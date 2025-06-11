@@ -1,0 +1,25 @@
+<div class="container mt-4">
+  <h2>Báo cáo thống kê</h2>
+  <div *ngIf="isLoading">Đang tải...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="stats">
+    <div class="row mb-3">
+      <div class="col"><b>Công việc:</b> {{ stats.totalJobs }}</div>
+      <div class="col"><b>Người dùng:</b> {{ stats.totalUsers }}</div>
+      <div class="col"><b>Ứng viên:</b> {{ stats.totalApplicants }}</div>
+      <div class="col"><b>Phỏng vấn:</b> {{ stats.totalInterviews }}</div>
+    </div>
+    <h4>Công việc theo trạng thái</h4>
+    <ul>
+      <li *ngFor="let job of stats.jobsByStatus">
+        {{ job.status }}: {{ job.count }}
+      </li>
+    </ul>
+    <h4>Ứng viên theo trạng thái</h4>
+    <ul>
+      <li *ngFor="let applicant of stats.applicantsByStatus">
+        {{ applicant.status }}: {{ applicant.count }}
+      </li>
+    </ul>
+  </div>
+</div>

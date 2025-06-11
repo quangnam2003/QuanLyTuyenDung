@@ -1,285 +1,176 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { User } from '../../../interfaces/user.interface';
 import { JobService } from '../../../services/job.service';
 import { Job } from '../../../models/job.model';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-user-interface',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="user-interface">
-      <!-- User Header -->
-      <header class="user-header">
-        <div class="container">
-          <div class="user-welcome">
-            <h2>Xin chào, {{currentUser?.fullName || 'Người dùng'}}</h2>
-            <p class="user-role">Tài khoản người dùng</p>
-          </div>
-          <nav class="user-nav">
-            <ul>
-              <li><a routerLink="/user/dashboard" routerLinkActive="active">Tổng quan</a></li>
-              <li><a routerLink="/user/profile" routerLinkActive="active">Hồ sơ của tôi</a></li>
-              <li><a routerLink="/user/applications" routerLinkActive="active">Đơn ứng tuyển</a></li>
-              <li><a routerLink="/user/saved-jobs" routerLinkActive="active">Việc làm đã lưu</a></li>
-              <li><a routerLink="/user/settings" routerLinkActive="active">Cài đặt</a></li>
-              <li><a href="#" (click)="logout()">Đăng xuất</a></li>
-            </ul>
-          </nav>
+    <div class="user-layout">
+      <!-- Sidebar -->
+      <nav class="sidebar">
+        <div class="sidebar-header">
+          <h2>User Portal</h2>
         </div>
-      </header>
+        <ul class="nav-menu">
+          <li>
+            <a routerLink="/user/dashboard" routerLinkActive="active">
+              <i class="bi bi-speedometer2"></i>
+              <span>Tổng quan</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/user/profile" routerLinkActive="active">
+              <i class="bi bi-person"></i>
+              <span>Hồ sơ của tôi</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/user/applications" routerLinkActive="active">
+              <i class="bi bi-file-text"></i>
+              <span>Đơn ứng tuyển</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="/user/settings" routerLinkActive="active">
+              <i class="bi bi-gear"></i>
+              <span>Cài đặt</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" (click)="logout()">
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Đăng xuất</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
 
-      <!-- Main Content -->
-      <main class="user-main">
-        <div class="container">
+      <!-- Main -->
+      <main class="main-content">
+        <header class="top-bar">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Tìm kiếm...">
+          </div>
+          <div class="user-menu">
+            <div class="user-info">
+              <img src="assets/images/avatar.jpg" alt="User Avatar">
+              <span>{{currentUser?.fullName || 'Người dùng'}}</span>
+            </div>
+            <button (click)="logout()" class="btn btn-outline-danger btn-sm" style="margin-left: 12px;">
+              Đăng xuất
+            </button>
+          </div>
+        </header>
+        <div class="content">
           <router-outlet></router-outlet>
         </div>
       </main>
     </div>
   `,
   styles: [`
-    .user-interface {
+    .user-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
       min-height: 100vh;
-      background-color: #f8f9fa;
     }
-
-    .user-header {
-      background-color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .sidebar {
+      background: #2c3e50;
+      color: white;
+      padding: 1rem;
+    }
+    .sidebar-header {
       padding: 1rem 0;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
-
-    .user-welcome {
-      margin-bottom: 1rem;
-    }
-
-    .user-welcome h2 {
+    .sidebar-header h2 {
       margin: 0;
-      color: #2c3e50;
       font-size: 1.5rem;
     }
-
-    .user-role {
-      color: #666;
-      margin: 0.5rem 0 0;
-    }
-
-    .user-nav ul {
-      display: flex;
+    .nav-menu {
       list-style: none;
-      margin: 0;
       padding: 0;
-      gap: 1rem;
+      margin: 1rem 0;
     }
-
-    .user-nav a {
+    .nav-menu li a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: rgba(255,255,255,0.8);
       text-decoration: none;
-      color: #2c3e50;
-      padding: 0.5rem 1rem;
       border-radius: 4px;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
     }
-
-    .user-nav a:hover {
-      background-color: #f8f9fa;
-      color: #3498db;
-    }
-
-    .user-nav a.active {
-      background-color: #3498db;
+    .nav-menu li a:hover,
+    .nav-menu li a.active {
+      background: rgba(255,255,255,0.1);
       color: white;
     }
-
-    .user-main {
-      padding: 2rem 0;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .stat-card h3 {
-      margin: 0 0 1rem;
-      color: #2c3e50;
+    .nav-menu li a i {
       font-size: 1.1rem;
     }
-
-    .stat-number {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #3498db;
-      margin: 0 0 1rem;
+    .main-content {
+      background: #f8f9fa;
     }
-
-    .stat-card a {
-      color: #3498db;
-      text-decoration: none;
-    }
-
-    .stat-card a:hover {
-      text-decoration: underline;
-    }
-
-    .recent-applications,
-    .recommended-jobs {
+    .top-bar {
       background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
-    }
-
-    .recent-applications h3,
-    .recommended-jobs h3 {
-      margin: 0 0 1.5rem;
-      color: #2c3e50;
-    }
-
-    .applications-list {
-      display: grid;
-      gap: 1rem;
-    }
-
-    .application-card {
+      padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       background: #f8f9fa;
-      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      width: 300px;
     }
-
-    .application-info h4 {
-      margin: 0 0 0.5rem;
-      color: #2c3e50;
+    .search-box input {
+      border: none;
+      background: none;
+      outline: none;
+      width: 100%;
     }
-
-    .company {
-      color: #666;
-      margin: 0 0 0.5rem;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.875rem;
-    }
-
-    .status.pending {
-      background-color: #ffeeba;
-      color: #856404;
-    }
-
-    .status.approved {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    .status.rejected {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    .application-date {
-      color: #666;
-      font-size: 0.875rem;
-    }
-
-    .jobs-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    .user-menu {
+      display: flex;
+      align-items: center;
       gap: 1.5rem;
     }
-
-    .job-card {
-      background: #f8f9fa;
-      padding: 1.5rem;
-      border-radius: 8px;
-    }
-
-    .job-card h4 {
-      margin: 0 0 0.5rem;
-      color: #2c3e50;
-    }
-
-    .job-actions {
+    .user-info {
       display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
+      align-items: center;
+      gap: 0.75rem;
     }
-
-    .btn-apply,
-    .btn-save {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
+    .user-info img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
     }
-
-    .btn-apply {
-      background-color: #3498db;
-      color: white;
-    }
-
-    .btn-apply:hover {
-      background-color: #2980b9;
-    }
-
-    .btn-save {
-      background-color: #f8f9fa;
-      color: #2c3e50;
-      border: 1px solid #dee2e6;
-    }
-
-    .btn-save:hover {
-      background-color: #e9ecef;
-    }
-
-    .no-data {
-      text-align: center;
-      color: #666;
+    .content {
       padding: 2rem;
     }
-
     @media (max-width: 768px) {
-      .user-nav ul {
-        flex-direction: column;
-      }
-
-      .stats-grid {
+      .user-layout {
         grid-template-columns: 1fr;
       }
-
-      .jobs-grid {
-        grid-template-columns: 1fr;
+      .sidebar {
+        display: none;
       }
-
-      .application-card {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+      .search-box {
+        width: 200px;
       }
     }
   `]
@@ -300,15 +191,11 @@ export class UserInterfaceComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadUserData();
-    this.loadDashboardData();
-    this.isDashboardRoute = this.router.url.endsWith('/dashboard');
-  }
-
-  loadUserData(): void {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+    this.loadDashboardData();
+    this.isDashboardRoute = this.router.url.endsWith('/dashboard');
   }
 
   loadDashboardData(): void {

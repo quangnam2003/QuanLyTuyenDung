@@ -110,7 +110,7 @@ import { RegisterRequest } from '../../../models/auth.model';
             <button
               type="submit"
               class="btn btn-primary w-100"
-              [disabled]="registerForm.invalid || isLoading"
+              [disabled]="isLoading"
             >
               {{ isLoading ? 'Đang đăng ký...' : 'Đăng ký' }}
             </button>

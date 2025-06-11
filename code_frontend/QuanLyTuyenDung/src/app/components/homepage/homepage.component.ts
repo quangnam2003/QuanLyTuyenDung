@@ -20,6 +20,8 @@ export class HomepageComponent implements OnInit {
   loading: boolean = true;
   error: string | null = null;
   currentUser: User | null = null;
+  isSearching: boolean = false;
+  searchResultsCount: number = 0;
 
   constructor(private jobService: JobService, private authService: AuthService) {
     this.authService.currentUser$.subscribe(user => this.currentUser = user);
@@ -32,6 +34,7 @@ export class HomepageComponent implements OnInit {
   loadFeaturedJobs(): void {
     this.loading = true;
     this.error = null;
+    this.isSearching = false;
     
     this.jobService.getFeaturedJobs().subscribe({
       next: (jobs) => {
@@ -50,11 +53,17 @@ export class HomepageComponent implements OnInit {
     if (this.searchQuery.trim()) {
       this.loading = true;
       this.error = null;
+      this.isSearching = true;
       
-      this.jobService.searchJobs(this.searchQuery).subscribe({
+      this.jobService.searchJobs(this.searchQuery.trim()).subscribe({
         next: (jobs) => {
           this.featuredJobs = jobs;
+          this.searchResultsCount = jobs.length;
           this.loading = false;
+          
+          if (jobs.length === 0) {
+            this.error = `Không tìm thấy công việc nào với từ khóa "${this.searchQuery}"`;
+          }
         },
         error: (err) => {
           this.error = 'Không thể tìm kiếm việc làm. Vui lòng thử lại sau.';
@@ -62,11 +71,27 @@ export class HomepageComponent implements OnInit {
           console.error('Error searching jobs:', err);
         }
       });
+    } else {
+      // Nếu không có từ khóa tìm kiếm, hiển thị lại việc làm nổi bật
+      this.loadFeaturedJobs();
+    }
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.loadFeaturedJobs();
+  }
+
+  onSearchKeyPress(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      this.onSearch();
     }
   }
 
   viewJobDetails(job: Job): void {
     // TODO: Navigate to job details page
     console.log('Viewing job:', job);
+    // Có thể thêm router navigation tại đây:
+    // this.router.navigate(['/jobs', job.id]);
   }
 }

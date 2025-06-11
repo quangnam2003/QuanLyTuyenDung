@@ -8,7 +8,7 @@ import { UserDashboardService } from '../../../services/user-dashboard.service';
     <div class="dashboard-container">
       <h2>Xin chào, đây là trang tổng quan</h2>
       <section class="recent-applications">
-        <h3>Công ty đã gửi CV gần đây</h3>
+        <h3>Đã nộp các CV công ty gần đây</h3>
         <div *ngIf="recentApplications.length > 0; else noApplications">
           <ul>
             <li *ngFor="let app of recentApplications">
