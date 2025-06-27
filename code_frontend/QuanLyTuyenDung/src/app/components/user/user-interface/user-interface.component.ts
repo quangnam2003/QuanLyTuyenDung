@@ -14,41 +14,29 @@ import { Job } from '../../../models/job.model';
     <div class="user-layout">
       <!-- Sidebar -->
       <nav class="sidebar">
-        <div class="sidebar-header">
-          <h2>User Portal</h2>
-        </div>
-        <ul class="nav-menu">
-          <li>
-            <a routerLink="/user/dashboard" routerLinkActive="active">
-              <i class="bi bi-speedometer2"></i>
-              <span>Tổng quan</span>
-            </a>
-          </li>
-          <li>
-            <a routerLink="/user/profile" routerLinkActive="active">
-              <i class="bi bi-person"></i>
-              <span>Hồ sơ của tôi</span>
-            </a>
-          </li>
-          <li>
-            <a routerLink="/user/applications" routerLinkActive="active">
-              <i class="bi bi-file-text"></i>
-              <span>Đơn ứng tuyển</span>
-            </a>
-          </li>
-          <li>
-            <a routerLink="/user/settings" routerLinkActive="active">
-              <i class="bi bi-gear"></i>
-              <span>Cài đặt</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" (click)="logout()">
-              <i class="bi bi-box-arrow-right"></i>
-              <span>Đăng xuất</span>
-            </a>
-          </li>
-        </ul>
+        <h1 class="portal-title">User Portal</h1>
+        <nav class="nav-menu">
+          <a routerLink="dashboard" routerLinkActive="active" class="nav-item">
+            <i class="fas fa-chart-pie"></i>
+            <span>Tổng quan</span>
+          </a>
+          <a routerLink="profile" routerLinkActive="active" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Hồ sơ của tôi</span>
+          </a>
+          <a routerLink="applications" routerLinkActive="active" class="nav-item">
+            <i class="fas fa-file-alt"></i>
+            <span>Đơn ứng tuyển</span>
+          </a>
+          <a routerLink="companies" routerLinkActive="active" class="nav-item">
+            <i class="fas fa-building"></i>
+            <span>Công ty</span>
+          </a>
+          <a routerLink="/auth/logout" class="nav-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Đăng xuất</span>
+          </a>
+        </nav>
       </nav>
 
       <!-- Main -->
@@ -76,50 +64,64 @@ import { Job } from '../../../models/job.model';
   `,
   styles: [`
     .user-layout {
-      display: grid;
-      grid-template-columns: 250px 1fr;
-      min-height: 100vh;
+      display: flex;
+      height: 100vh;
     }
+
     .sidebar {
-      background: #2c3e50;
+      width: 250px;
+      background: #2B3674;
       color: white;
-      padding: 1rem;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
     }
-    .sidebar-header {
-      padding: 1rem 0;
-      text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+
+    .portal-title {
+      font-size: 24px;
+      margin-bottom: 40px;
+      font-weight: 600;
     }
-    .sidebar-header h2 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
+
     .nav-menu {
-      list-style: none;
-      padding: 0;
-      margin: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-    .nav-menu li a {
+
+    .nav-item {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      color: rgba(255,255,255,0.8);
+      gap: 12px;
+      padding: 12px 16px;
+      color: #A3AED0;
       text-decoration: none;
-      border-radius: 4px;
+      border-radius: 12px;
       transition: all 0.3s ease;
     }
-    .nav-menu li a:hover,
-    .nav-menu li a.active {
-      background: rgba(255,255,255,0.1);
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
       color: white;
     }
-    .nav-menu li a i {
-      font-size: 1.1rem;
+
+    .nav-item.active {
+      background: #4318FF;
+      color: white;
     }
+
+    .nav-item i {
+      font-size: 18px;
+      width: 24px;
+    }
+
     .main-content {
-      background: #f8f9fa;
+      flex: 1;
+      padding: 20px;
+      background: #F4F7FE;
+      overflow-y: auto;
     }
+
     .top-bar {
       background: white;
       padding: 1rem 2rem;
@@ -164,9 +166,20 @@ import { Job } from '../../../models/job.model';
     }
     @media (max-width: 768px) {
       .user-layout {
-        grid-template-columns: 1fr;
+        flex-direction: column;
       }
       .sidebar {
+        width: 80px;
+        padding: 20px 10px;
+      }
+      .portal-title {
+        display: none;
+      }
+      .nav-item {
+        padding: 12px;
+        justify-content: center;
+      }
+      .nav-item span {
         display: none;
       }
       .search-box {
@@ -222,10 +235,10 @@ export class UserInterfaceComponent implements OnInit {
 
     // Load recommended jobs from database
     this.jobService.getRecommendedJobs().subscribe({
-      next: (jobs) => {
+      next: (jobs: Job[]) => {
         this.recommendedJobs = jobs;
       },
-      error: (error) => {
+      error: (error: Error) => {
         console.error('Error loading recommended jobs:', error);
       }
     });

@@ -2,11 +2,12 @@
 using QuanLyTuyenDung.DBContext;
 using QuanLyTuyenDung.Services;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,23 +15,99 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// THÊM: Đăng ký NotificationService
+// THÊM: Đăng ký Services
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IJobService, JobService>();
+
+// Cấu hình JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? 
+            throw new InvalidOperationException("JWT Key is not configured"))),
+        ClockSkew = TimeSpan.Zero // Removes the default 5 minutes clock skew
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            var logger = context.HttpContext.RequestServices
+                .GetRequiredService<ILogger<Program>>();
+
+            logger.LogError("Authentication failed: {Error}", context.Exception.Message);
+
+            if (context.Exception is SecurityTokenExpiredException)
+            {
+                context.Response.Headers.Add("Token-Expired", "true");
+                logger.LogWarning("Token has expired");
+            }
+
+            return Task.CompletedTask;
+        },
+
+        OnTokenValidated = context =>
+        {
+            var logger = context.HttpContext.RequestServices
+                .GetRequiredService<ILogger<Program>>();
+
+            var token = context.SecurityToken as JwtSecurityToken;
+            if (token != null)
+            {
+                logger.LogInformation(
+                    "Token validated successfully. User: {User}, Expires: {Expires}",
+                    token.Claims.FirstOrDefault(c => c.Type == "email")?.Value,
+                    token.ValidTo
+                );
+            }
+
+            return Task.CompletedTask;
+        },
+
+        OnChallenge = context =>
+        {
+            var logger = context.HttpContext.RequestServices
+                .GetRequiredService<ILogger<Program>>();
+
+            logger.LogWarning(
+                "Authentication challenge issued: {Error}",
+                context.Error ?? "No specific error provided"
+            );
+
+            return Task.CompletedTask;
+        }
+    };
+});
 
 // Cấu hình CORS cho phép frontend truy cập
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowFrontend", builder =>
     {
-        policy.WithOrigins(
-                "http://localhost:4200",  // Angular dev server
-                "https://localhost:4200", // Angular dev server SSL
-                "http://localhost:3000",  // Alternative frontend port
-                "https://localhost:3000"  // Alternative frontend port SSL
+        builder
+            .WithOrigins(
+                "http://localhost:4200",  // Angular development server
+                "https://localhost:4200",
+                "http://localhost:7029",  // Backend development server
+                "https://localhost:7029"
             )
-            .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .WithExposedHeaders("Content-Disposition"); // Cho phép frontend đọc header khi download file
     });
 
     // Policy cho phép tất cả (chỉ dùng trong development)
@@ -40,36 +117,17 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-// Cấu hình Authentication (JWT) - CÓ THỂ BỎ COMMENT NẾU MUỐN DÙNG JWT
-/*
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "QuanLyTuyenDung",
-            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "QuanLyTuyenDung",
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "your-secret-key-here"))
-        };
-    });
-*/
-
-// Cấu hình Authorization policies
+// Cấu hình Authorization policies (simple without JWT for now)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireAdminRole", policy =>
-        policy.RequireRole("Admin"));
+        policy.RequireAssertion(context => true)); // Allow all for now
     options.AddPolicy("RequireHRRole", policy =>
-        policy.RequireRole("Admin", "HR"));
+        policy.RequireAssertion(context => true)); // Allow all for now
     options.AddPolicy("RequireRecruiterRole", policy =>
-        policy.RequireRole("Admin", "HR", "Recruiter"));
+        policy.RequireAssertion(context => true)); // Allow all for now
     options.AddPolicy("RequireUserRole", policy =>
-        policy.RequireRole("Admin", "HR", "Recruiter", "User"));
+        policy.RequireAssertion(context => true)); // Allow all for now
 });
 
 // Đăng ký Controllers với JSON options
@@ -79,6 +137,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = null; // Giữ PascalCase
         options.JsonSerializerOptions.WriteIndented = true; // Format JSON đẹp
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // Không phân biệt hoa thường
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
 // Đăng ký API Explorer cho Swagger
@@ -91,10 +150,15 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Quản Lý Tuyển Dụng API",
         Version = "v1",
-        Description = "API cho hệ thống quản lý tuyển dụng"
+        Description = "API cho hệ thống quản lý tuyển dụng",
+        Contact = new OpenApiContact
+        {
+            Name = "Developer",
+            Email = "developer@example.com"
+        }
     });
 
-    // Add JWT Authentication
+    // Add Bearer token authentication (optional)
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -119,13 +183,11 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Tự động tạo document từ XML comments
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
-    {
-        c.IncludeXmlComments(xmlPath);
-    }
+    // Configure Swagger to handle enum values properly
+    c.UseInlineDefinitionsForEnums();
+
+    // Handle polymorphism
+    c.UseAllOfToExtendReferenceSchemas();
 });
 
 // Cấu hình file upload limits
@@ -151,6 +213,16 @@ builder.Services.AddLogging(logging =>
     }
 });
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.LogTo(Console.WriteLine, LogLevel.Information);
+    }
+});
+
 // Build application
 var app = builder.Build();
 
@@ -159,7 +231,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 
-    // Swagger chỉ trong Development
+    // Swagger trong Development
     app.UseSwagger(c =>
     {
         c.SerializeAsV2 = false;
@@ -168,6 +240,8 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Quản Lý Tuyển Dụng API v1");
         c.RoutePrefix = "swagger";
+        c.DisplayRequestDuration();
+        c.EnableTryItOutByDefault();
     });
 }
 else
@@ -195,8 +269,10 @@ app.UseCors("AllowFrontend");
 // Static files cho uploaded documents
 app.UseStaticFiles();
 
-// Authentication & Authorization middleware
-//app.UseAuthentication(); // Uncomment nếu dùng JWT
+// Thêm Authentication middleware TRƯỚC Authorization
+app.UseAuthentication();
+
+// Authorization middleware
 app.UseAuthorization();
 
 // Custom logging middleware
@@ -284,8 +360,8 @@ using (var scope = app.Services.CreateScope())
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while initializing the database.");
 
-        // Trong production, có thể muốn throw exception để stop app
-        // throw;
+        // Log error but don't stop the application
+        logger.LogWarning("Continuing application startup despite database initialization error.");
     }
 }
 
@@ -294,6 +370,8 @@ var port = Environment.GetEnvironmentVariable("PORT") ?? "7029";
 var host = Environment.GetEnvironmentVariable("HOST") ?? "localhost";
 
 app.Logger.LogInformation($"Starting application on https://{host}:{port}");
+app.Logger.LogInformation($"Swagger UI available at: https://{host}:{port}/swagger");
+
 app.Run($"https://{host}:{port}");
 
 // Global Error Handling Middleware
@@ -350,9 +428,9 @@ public class ErrorHandlingMiddleware
             }
         };
 
-        var jsonResponse = System.Text.Json.JsonSerializer.Serialize(response, new JsonSerializerOptions
+        var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
         {
-            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true
         });
 

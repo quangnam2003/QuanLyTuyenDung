@@ -48,6 +48,9 @@ namespace QuanLyTuyenDung.Models
         public virtual ICollection<Document>? Documents { get; set; }
         public virtual Candidate? Candidate { get; set; }
         public virtual Recruiter? Recruiter { get; set; }
+
+        public int? CompanyId { get; set; }
+        public Company? Company { get; set; }
     }
 
     // User Preferences Class
@@ -59,5 +62,18 @@ namespace QuanLyTuyenDung.Models
         public string TimeZone { get; set; } = "Asia/Ho_Chi_Minh";
         public List<string> InterestedJobTypes { get; set; } = new List<string>();
         public List<string> PreferredLocations { get; set; } = new List<string>();
+    }
+
+    public class AuthResponse
+    {
+        public int Id { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string Role { get; set; } = "USER"; // Đảm bảo luôn có giá trị mặc định
+        public string Token { get; set; } = string.Empty;
+        public int? CompanyId { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public bool IsAuthenticated { get; set; } = true;
+        public string UserRole => Role?.ToUpper() ?? "USER"; // Thêm property để đảm bảo có role in hoa
     }
 }

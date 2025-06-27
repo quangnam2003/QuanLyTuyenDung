@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyTuyenDung.Models;
 using QuanLyTuyenDung.DBContext;
-using QuanLyTuyenDung.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
@@ -14,13 +13,11 @@ namespace QuanLyTuyenDung.Controllers
     public class JobsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly IJobService _jobService;
         private readonly ILogger<JobsController> _logger;
 
-        public JobsController(ApplicationDbContext context, IJobService jobService, ILogger<JobsController> logger)
+        public JobsController(ApplicationDbContext context, ILogger<JobsController> logger)
         {
             _context = context;
-            _jobService = jobService;
             _logger = logger;
         }
 
@@ -202,7 +199,6 @@ namespace QuanLyTuyenDung.Controllers
 
         // GET: api/Jobs/recommended
         [HttpGet("recommended")]
-        [Authorize]
         public async Task<ActionResult<IEnumerable<object>>> GetRecommendedJobs()
         {
             // Simple recommendation logic - can be enhanced later
@@ -229,46 +225,82 @@ namespace QuanLyTuyenDung.Controllers
 
         // POST: api/Jobs
         [HttpPost]
-        [Authorize]
-        public async Task<ActionResult<Job>> PostJob(CreateJobRequest request)
+        public async Task<ActionResult<Job>> CreateJob([FromBody] CreateJobRequest request)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            try
             {
-                return Unauthorized();
+                _logger.LogInformation("Creating new job: {@Request}", request);
+
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Invalid model state for job creation: {@ModelState}", ModelState);
+                    return BadRequest(ModelState);
+                }
+
+                // Kiểm tra required fields
+                if (string.IsNullOrWhiteSpace(request.Title) ||
+                    string.IsNullOrWhiteSpace(request.Description) ||
+                    string.IsNullOrWhiteSpace(request.Company))
+                {
+                    return BadRequest(new { message = "Title, Description và Company là bắt buộc" });
+                }
+
+                // Lấy user đầu tiên từ database thay vì hardcode
+                var firstUser = await _context.Users.FirstOrDefaultAsync();
+                if (firstUser == null)
+                {
+                    _logger.LogError("No users found in database");
+                    return BadRequest(new { message = "Không tìm thấy user trong hệ thống" });
+                }
+
+                var job = new Job
+                {
+                    Title = request.Title.Trim(),
+                    Description = request.Description.Trim(),
+                    Requirements = request.Requirements?.Trim() ?? "",
+                    SalaryRange = request.Salary?.Trim() ?? "Thỏa thuận",
+                    Location = request.Location?.Trim() ?? "",
+                    Company = request.Company.Trim(),
+                    Type = request.Type?.Trim() ?? "Full-time",
+                    Status = !string.IsNullOrWhiteSpace(request.Status) ? request.Status : "Active",
+                    Department = request.Department?.Trim() ?? "IT",
+                    NumberOfPositions = request.NumberOfPositions > 0 ? request.NumberOfPositions : 1,
+                    ApplicationDeadline = request.ApplicationDeadline != default ? request.ApplicationDeadline : DateTime.UtcNow.AddMonths(1),
+                    ExperienceRequired = request.ExperienceRequired?.Trim(),
+                    Benefits = request.Benefits?.Trim(),
+                    DetailedLocation = request.DetailedLocation?.Trim(),
+                    Skills = request.Skills ?? new List<string>(),
+                    Education = request.Education?.Trim(),
+                    PostedBy = firstUser.UserID, // Sử dụng user thật từ DB
+                    CreatedBy = firstUser.FullName,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Jobs.Add(job);
+                await _context.SaveChangesAsync();
+
+                // Load lại job với thông tin user
+                var createdJob = await _context.Jobs
+                    .Include(j => j.User)
+                    .FirstOrDefaultAsync(j => j.JobID == job.JobID);
+
+                _logger.LogInformation("Job created successfully with ID: {JobId}", job.JobID);
+
+                return CreatedAtAction(nameof(GetJob), new { id = job.JobID }, createdJob);
             }
-
-            var job = new Job
+            catch (Exception ex)
             {
-                Title = request.Title,
-                Description = request.Description,
-                Requirements = request.Requirements,
-                SalaryRange = request.Salary,
-                Location = request.Location,
-                Company = request.Company,
-                Type = request.Type,
-                Status = request.Status,
-                Department = request.Department,
-                NumberOfPositions = request.NumberOfPositions,
-                ApplicationDeadline = request.ApplicationDeadline,
-                ExperienceRequired = request.ExperienceRequired,
-                Benefits = request.Benefits,
-                DetailedLocation = request.DetailedLocation,
-                Skills = request.Skills ?? new List<string>(),
-                Education = request.Education,
-                PostedBy = int.Parse(userId),
-                CreatedBy = User.FindFirst(ClaimTypes.Name)?.Value ?? "System"
-            };
-
-            _context.Jobs.Add(job);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetJob), new { id = job.JobID }, job);
+                _logger.LogError(ex, "Error creating job: {Message}", ex.Message);
+                return StatusCode(500, new
+                {
+                    message = "Lỗi tạo việc làm: " + ex.Message,
+                    details = ex.InnerException?.Message
+                });
+            }
         }
 
         // PUT: api/Jobs/5
         [HttpPut("{id}")]
-        [Authorize]
         public async Task<IActionResult> PutJob(int id, UpdateJobRequest request)
         {
             var job = await _context.Jobs.FindAsync(id);
@@ -285,7 +317,7 @@ namespace QuanLyTuyenDung.Controllers
             job.Location = request.Location;
             job.Company = request.Company;
             job.Type = request.Type;
-            job.Status = request.Status;
+            job.Status = request.Status ?? "Active";
             job.Department = request.Department;
             job.NumberOfPositions = request.NumberOfPositions;
             job.ApplicationDeadline = request.ApplicationDeadline;
@@ -295,7 +327,7 @@ namespace QuanLyTuyenDung.Controllers
             job.Skills = request.Skills ?? new List<string>();
             job.Education = request.Education;
             job.UpdatedAt = DateTime.UtcNow;
-            job.UpdatedBy = User.FindFirst(ClaimTypes.Name)?.Value ?? "System";
+            job.UpdatedBy = "System";
 
             try
             {
@@ -318,7 +350,6 @@ namespace QuanLyTuyenDung.Controllers
 
         // DELETE: api/Jobs/5
         [HttpDelete("{id}")]
-        [Authorize]
         public async Task<IActionResult> DeleteJob(int id)
         {
             var job = await _context.Jobs.FindAsync(id);
@@ -335,7 +366,6 @@ namespace QuanLyTuyenDung.Controllers
 
         // GET: api/Jobs/stats
         [HttpGet("stats")]
-        [Authorize(Roles = "Admin,HR")]
         public async Task<ActionResult<object>> GetJobStats()
         {
             var totalJobs = await _context.Jobs.CountAsync();
@@ -360,51 +390,26 @@ namespace QuanLyTuyenDung.Controllers
         // Request DTOs
         public class CreateJobRequest
         {
-            public string Title { get; set; }
-            public string Description { get; set; }
-            public string Requirements { get; set; }
-            public string Salary { get; set; }
-            public string Location { get; set; }
-            public string Company { get; set; }
-            public string Type { get; set; }
-            public string Status { get; set; }
-            public string Department { get; set; }
-            public int NumberOfPositions { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
+            public string Requirements { get; set; } = string.Empty;
+            public string Salary { get; set; } = string.Empty;
+            public string Location { get; set; } = string.Empty;
+            public string Company { get; set; } = string.Empty;
+            public string Type { get; set; } = string.Empty;
+            public string? Status { get; set; }
+            public string Department { get; set; } = string.Empty;
+            public int NumberOfPositions { get; set; } = 1;
             public DateTime ApplicationDeadline { get; set; }
-            public string ExperienceRequired { get; set; }
-            public string Benefits { get; set; }
-            public string DetailedLocation { get; set; }
-            public List<string> Skills { get; set; }
-            public string Education { get; set; }
+            public string? ExperienceRequired { get; set; }
+            public string? Benefits { get; set; }
+            public string? DetailedLocation { get; set; }
+            public List<string>? Skills { get; set; }
+            public string? Education { get; set; }
         }
 
         public class UpdateJobRequest : CreateJobRequest
         {
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<Job>> CreateJob([FromBody] Job job)
-        {
-            try
-            {
-                _logger.LogInformation("Creating new job: {@Job}", job);
-                
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for job creation");
-                    return BadRequest(ModelState);
-                }
-
-                var createdJob = await _jobService.CreateJobAsync(job);
-                _logger.LogInformation("Job created successfully with ID: {JobId}", createdJob.JobID);
-                
-                return CreatedAtAction(nameof(GetJob), new { id = createdJob.JobID }, createdJob);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating job");
-                return StatusCode(500, new { message = "Internal server error while creating job" });
-            }
         }
     }
 }

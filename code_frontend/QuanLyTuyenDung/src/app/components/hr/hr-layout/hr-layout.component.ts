@@ -52,8 +52,8 @@ import { AuthService } from '../../../services/auth.service';
           </li>
           <li>
             <a routerLink="/hr/settings" routerLinkActive="active">
-              <i class="bi bi-gear"></i>
-              <span>Cài đặt</span>
+              <i class="bi bi-building"></i>
+              <span>Hồ sơ công ty</span>
             </a>
           </li>
         </ul>

@@ -1,17 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Interview } from '../models/interview.model';
 import { environment } from '../../environments/environment';
+import { MockDataService, MockInterview } from './mock-data.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InterviewService {
   private apiUrl = `${environment.apiUrl}/api/Interviews`;
+  private useMockData = true; // Set to false when real API is ready
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private mockDataService: MockDataService
+  ) { }
 
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'Đã xảy ra lỗi!';
@@ -34,20 +39,61 @@ export class InterviewService {
     return throwError(() => new Error(errorMessage));
   }
 
+  private convertMockToInterview(mockInterview: MockInterview): Interview {
+    return {
+      id: mockInterview.id,
+      candidateId: mockInterview.candidateId,
+      candidateName: mockInterview.candidateName,
+      jobId: mockInterview.jobId,
+      jobTitle: mockInterview.jobTitle,
+      priority: mockInterview.priority,
+      type: mockInterview.type,
+      status: mockInterview.status,
+      stage: mockInterview.stage,
+      scheduledDate: mockInterview.scheduledDate,
+      duration: mockInterview.duration,
+      location: mockInterview.location,
+      interviewers: mockInterview.interviewers,
+      notes: mockInterview.notes,
+      evaluations: mockInterview.evaluations,
+      createdAt: mockInterview.createdAt,
+      updatedAt: mockInterview.updatedAt
+    };
+  }
+
   // Lấy tất cả cuộc phỏng vấn
   getAllInterviews(): Observable<Interview[]> {
+    if (this.useMockData) {
+      const mockInterviews = this.mockDataService.getAllInterviews();
+      const interviews = mockInterviews.map(interview => this.convertMockToInterview(interview));
+      return of(interviews);
+    }
+    
     return this.http.get<Interview[]>(this.apiUrl)
       .pipe(catchError(this.handleError));
   }
 
   // Lấy cuộc phỏng vấn theo ngày
   getInterviewsByDate(date: string): Observable<Interview[]> {
+    if (this.useMockData) {
+      const targetDate = new Date(date);
+      const mockInterviews = this.mockDataService.getInterviewsByDate(targetDate);
+      const interviews = mockInterviews.map(interview => this.convertMockToInterview(interview));
+      return of(interviews);
+    }
+    
     return this.http.get<Interview[]>(`${this.apiUrl}/date/${date}`)
       .pipe(catchError(this.handleError));
   }
 
   // Lấy cuộc phỏng vấn theo status
   getInterviewsByStatus(status: string): Observable<Interview[]> {
+    if (this.useMockData) {
+      const mockInterviews = this.mockDataService.getInterviewsByStatus(status);
+      const interviews = mockInterviews.map(interview => this.convertMockToInterview(interview));
+      return of(interviews);
+    }
+    
     return this.http.get<Interview[]>(`${this.apiUrl}/status/${status}`)
       .pipe(catchError(this.handleError));
   }
@@ -144,6 +190,13 @@ export class InterviewService {
 
   // Lấy cuộc phỏng vấn hôm nay
   getTodayInterviews(): Observable<Interview[]> {
+    if (this.useMockData) {
+      const today = new Date();
+      const mockInterviews = this.mockDataService.getInterviewsByDate(today);
+      const interviews = mockInterviews.map(interview => this.convertMockToInterview(interview));
+      return of(interviews);
+    }
+    
     return this.http.get<Interview[]>(`${this.apiUrl}/today`)
       .pipe(catchError(this.handleError));
   }

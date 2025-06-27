@@ -1,141 +1,164 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { Job } from '../models/job.model';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { Job } from '../models/job.model';
+import { MockDataService, Job as MockJob } from './mock-data.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class JobService {
-  private apiUrl = `${environment.apiUrl}/api/Jobs`;
+  private apiUrl = `${environment.apiUrl}/jobs`;
+  private useMockData = true; // Set to false when real API is ready
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private mockDataService: MockDataService
+  ) { }
 
-  private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'Đã xảy ra lỗi!';
-    
-    if (error.status === 0) {
-      // Network error
-      errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra:\n' +
-                    '1. Kết nối mạng của bạn\n' +
-                    '2. Backend API đang chạy\n' +
-                    '3. URL API đúng (https://localhost:7029)';
-    } else {
-      // Server-side error
-      errorMessage = `Mã lỗi: ${error.status}\nThông báo: ${error.message}`;
-      if (error.error?.message) {
-        errorMessage += `\nChi tiết: ${error.error.message}`;
-      }
-    }
-    
-    console.error('JobService error:', error);
-    return throwError(() => new Error(errorMessage));
+  private convertMockJob(job: MockJob): Job {
+    // Validate and convert job type to ensure it matches the union type
+    const validTypes = ['Full-time', 'Part-time', 'Contract', 'Internship'] as const;
+    const jobType = validTypes.find(t => t === job.type) || 'Full-time';
+
+    return {
+      ...job,
+      type: jobType,
+      status: 'Active',
+      department: 'General',
+      numberOfPositions: 1,
+      applicationDeadline: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+      experienceRequired: job.experience || 'Không yêu cầu',
+      benefits: job.benefits?.join('\n') || 'Thỏa thuận',
+      detailedLocation: job.location,
+      skills: job.requirements.split('\n'),
+      education: 'Không yêu cầu',
+      createdAt: job.createdAt || new Date(),
+      updatedAt: new Date()
+    };
   }
 
   getAllJobs(): Observable<Job[]> {
+    if (this.useMockData) {
+      const jobs = this.mockDataService.getAllJobs().map(this.convertMockJob);
+      return of(jobs);
+    }
     return this.http.get<Job[]>(this.apiUrl)
       .pipe(catchError(this.handleError));
   }
 
   getFeaturedJobs(): Observable<Job[]> {
+    if (this.useMockData) {
+      const jobs = this.mockDataService.getAllJobs()
+        .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+        .slice(0, 3)
+        .map(this.convertMockJob);
+      return of(jobs);
+    }
     return this.http.get<Job[]>(`${this.apiUrl}/featured`)
       .pipe(catchError(this.handleError));
   }
 
-  searchJobs(query: string): Observable<Job[]> {
-    const params = new HttpParams().set('q', query);
-    return this.http.get<Job[]>(`${this.apiUrl}/search`, { params })
-      .pipe(catchError(this.handleError));
-  }
-
-  // Tìm kiếm và lọc công việc với nhiều tham số
-  searchAndFilterJobs(filters: {
-    query?: string;
-    type?: string;
-    location?: string;
-    company?: string;
-    salaryMin?: number;
-    salaryMax?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }): Observable<Job[]> {
-    let params = new HttpParams();
-    
-    if (filters.query && filters.query.trim()) {
-      params = params.set('q', filters.query.trim());
-    }
-    if (filters.type) {
-      params = params.set('type', filters.type);
-    }
-    if (filters.location) {
-      params = params.set('location', filters.location);
-    }
-    if (filters.company) {
-      params = params.set('company', filters.company);
-    }
-    if (filters.salaryMin) {
-      params = params.set('salaryMin', filters.salaryMin.toString());
-    }
-    if (filters.salaryMax) {
-      params = params.set('salaryMax', filters.salaryMax.toString());
-    }
-    if (filters.sortBy) {
-      params = params.set('sortBy', filters.sortBy);
-    }
-    if (filters.sortOrder) {
-      params = params.set('sortOrder', filters.sortOrder);
-    }
-
-    return this.http.get<Job[]>(`${this.apiUrl}/filter`, { params })
-      .pipe(catchError(this.handleError));
-  }
-
   getJobById(id: number): Observable<Job> {
+    if (this.useMockData) {
+      const job = this.mockDataService.getAllJobs().find(j => j.id === id);
+      return job ? of(this.convertMockJob(job)) : throwError(() => new Error('Job not found'));
+    }
     return this.http.get<Job>(`${this.apiUrl}/${id}`)
       .pipe(catchError(this.handleError));
   }
 
+  searchJobs(query: string): Observable<Job[]> {
+    if (this.useMockData) {
+      const lowercaseQuery = query.toLowerCase();
+      const jobs = this.mockDataService.getAllJobs()
+        .filter(job => 
+          job.title.toLowerCase().includes(lowercaseQuery) ||
+          job.company.toLowerCase().includes(lowercaseQuery) ||
+          job.description.toLowerCase().includes(lowercaseQuery) ||
+          job.location.toLowerCase().includes(lowercaseQuery)
+        )
+        .map(this.convertMockJob);
+      return of(jobs);
+    }
+    return this.http.get<Job[]>(`${this.apiUrl}/search?q=${encodeURIComponent(query)}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getRecommendedJobs(): Observable<Job[]> {
+    if (this.useMockData) {
+      // For mock data, return top 3 jobs sorted by view count
+      const jobs = this.mockDataService.getAllJobs()
+        .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+        .slice(0, 3)
+        .map(this.convertMockJob);
+      return of(jobs);
+    }
+    return this.http.get<Job[]>(`${this.apiUrl}/recommended`)
+      .pipe(catchError(this.handleError));
+  }
+
   createJob(job: Job): Observable<Job> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    });
-
-    // Log request data
-    console.log('Creating job with data:', job);
-
-    return this.http.post<Job>(this.apiUrl, job, { 
-      headers,
-      observe: 'response'  // Get full response
-    }).pipe(
-      map(response => {
-        console.log('Server response:', response);
-        return response.body as Job;
-      }),
-      catchError(error => {
-        console.error('Full error details:', error);
-        if (error.status === 500) {
-          return throwError(() => new Error('Lỗi máy chủ nội bộ. Vui lòng thử lại sau.'));
-        }
-        return throwError(() => new Error(error.error?.message || 'Có lỗi xảy ra khi tạo công việc'));
-      })
-    );
+    if (this.useMockData) {
+      const mockJob: MockJob = {
+        id: Date.now(),
+        title: job.title,
+        description: job.description,
+        requirements: job.requirements,
+        salary: job.salary,
+        location: job.location,
+        company: job.company,
+        type: job.type,
+        createdAt: new Date(),
+        viewCount: 0
+      };
+      const newJob = this.convertMockJob(mockJob);
+      return of(newJob);
+    }
+    return this.http.post<Job>(this.apiUrl, job)
+      .pipe(catchError(this.handleError));
   }
 
   updateJob(id: number, job: Job): Observable<Job> {
+    if (this.useMockData) {
+      const mockJob: MockJob = {
+        id,
+        title: job.title,
+        description: job.description,
+        requirements: job.requirements,
+        salary: job.salary,
+        location: job.location,
+        company: job.company,
+        type: job.type,
+        createdAt: job.createdAt || new Date(),
+        viewCount: job.viewCount || 0
+      };
+      return of(this.convertMockJob(mockJob));
+    }
     return this.http.put<Job>(`${this.apiUrl}/${id}`, job)
       .pipe(catchError(this.handleError));
   }
 
   deleteJob(id: number): Observable<void> {
+    if (this.useMockData) {
+      return of(void 0);
+    }
     return this.http.delete<void>(`${this.apiUrl}/${id}`)
       .pipe(catchError(this.handleError));
   }
 
-  getRecommendedJobs(): Observable<Job[]> {
-    return this.http.get<Job[]>(`${this.apiUrl}/recommended`)
-      .pipe(catchError(this.handleError));
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'Đã xảy ra lỗi khi xử lý yêu cầu.';
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = error.error.message;
+    } else {
+      // Server-side error
+      errorMessage = `Mã lỗi: ${error.status}, Thông báo: ${error.message}`;
+    }
+    console.error('Job service error:', errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 }

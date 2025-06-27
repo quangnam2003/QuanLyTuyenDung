@@ -19,7 +19,6 @@ import { Router } from '@angular/router';
           <li routerLinkActive="active"><a routerLink="/admin/dashboard">Dashboard</a></li>
           <li routerLinkActive="active"><a routerLink="/admin/jobs">Quản lý công việc</a></li>
           <li routerLinkActive="active"><a routerLink="/admin/users">Quản lý người dùng</a></li>
-          <li routerLinkActive="active"><a routerLink="/admin/reports">Báo cáo</a></li>
           <li routerLinkActive="active"><a routerLink="/admin/settings">Cài đặt</a></li>
         </ul>
       </nav>

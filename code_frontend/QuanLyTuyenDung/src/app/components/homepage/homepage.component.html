@@ -1,8 +1,7 @@
-<!-- Topbar giống dashboard user -->
 <header class="top-bar-home">
   <div class="container topbar-flex">
     <div class="logo" style="display: flex; align-items: center; gap: 15px;">
-      <img src="/topcv.png" alt="logo" style="width: 60px;"/>
+      <img src="/topcv.png" alt="Quản Lý Tuyển Dụng Logo" title="Quản Lý Tuyển Dụng Logo" style="width: 60px;"/>
       <span class="brand-title">Quản Lý Tuyển Dụng</span>
     </div>
     <nav class="main-nav-home">
@@ -79,7 +78,9 @@
       <div class="job-card" *ngFor="let job of featuredJobs">
         <div class="job-header">
           <h3>{{job.title}}</h3>
-          <span class="job-type">{{job.type}}</span>
+          <span class="job-type" [ngClass]="getJobTypeClass(job.type)">
+            {{job.type}}
+          </span>
         </div>
         <div class="job-info">
           <div class="company-info">
@@ -100,10 +101,8 @@
         </div>
         <div class="job-footer">
           <div class="job-date" *ngIf="job.createdAt">
-            <small>
-              <i class="bi bi-clock"></i>
-              Đăng {{ job.createdAt | date:'dd/MM/yyyy' }}
-            </small>
+            <i class="bi bi-clock"></i>
+            <small>Đăng {{ formatDate(job.createdAt) }}</small>
           </div>
           <button (click)="viewJobDetails(job)" class="view-details-btn">
             <i class="bi bi-eye"></i>
@@ -114,9 +113,130 @@
     </div>
 
     <!-- No Results -->
-    <div *ngIf="!loading && !error && featuredJobs.length === 0 && !isSearching" class="no-results">
+    <div *ngIf="!loading && !error && featuredJobs.length === 0" class="no-results">
       <i class="bi bi-briefcase"></i>
-      <p>Chưa có việc làm nổi bật nào.</p>
+      <p>{{ isSearching ? 'Không tìm thấy công việc phù hợp với từ khóa tìm kiếm.' : 'Chưa có việc làm nổi bật nào.' }}</p>
+      <button *ngIf="isSearching" (click)="clearSearch()" class="clear-search-btn">
+        <i class="bi bi-arrow-clockwise"></i>
+        Xóa tìm kiếm
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Latest Jobs Section -->
+<section class="latest-jobs">
+  <div class="container">
+    <div class="section-header">
+      <h2>Việc làm mới nhất</h2>
+    </div>
+    <div class="job-list">
+      <div class="job-card" *ngFor="let job of latestJobs">
+        <div class="job-header">
+          <h3>{{job.title}}</h3>
+          <span class="job-type" [ngClass]="getJobTypeClass(job.type)">
+            {{job.type}}
+          </span>
+        </div>
+        <div class="job-info">
+          <div class="company-info">
+            <i class="bi bi-building"></i>
+            <span>{{job.company}}</span>
+          </div>
+          <div class="location-info">
+            <i class="bi bi-geo-alt"></i>
+            <span>{{job.location}}</span>
+          </div>
+          <div class="salary-info" *ngIf="job.salary">
+            <i class="bi bi-cash-stack"></i>
+            <span>{{job.salary}}</span>
+          </div>
+        </div>
+        <div class="job-footer">
+          <div class="job-date" *ngIf="job.createdAt">
+            <i class="bi bi-clock"></i>
+            <small>Đăng {{ formatDate(job.createdAt) }}</small>
+          </div>
+          <button (click)="viewJobDetails(job)" class="view-details-btn">
+            <i class="bi bi-eye"></i>
+            Xem chi tiết
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="section-footer">
+      <a routerLink="/jobs" class="view-all-btn">
+        <i class="bi bi-arrow-right"></i>
+        Xem tất cả việc làm
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Companies Section -->
+<section class="featured-companies">
+  <div class="container">
+    <div class="section-header">
+      <h2>Công ty nổi bật</h2>
+      <p>Khám phá các công ty hàng đầu đang tuyển dụng</p>
+    </div>
+    <div class="company-list">
+      <div class="company-card" *ngFor="let company of featuredCompanies">
+        <div class="company-logo">
+          <img [src]="company.logo || '/assets/images/company-default.png'" 
+               [alt]="'Logo công ty ' + company.name"
+               [title]="company.name">
+        </div>
+        <div class="company-info">
+          <h3>{{company.name}}</h3>
+          <div class="company-details">
+            <div class="detail-item">
+              <i class="bi bi-briefcase"></i>
+              <span>{{company.industry}}</span>
+            </div>
+            <div class="detail-item">
+              <i class="bi bi-geo-alt"></i>
+              <span>{{company.location}}</span>
+            </div>
+            <div class="detail-item">
+              <i class="bi bi-people"></i>
+              <span>{{company.size}}</span>
+            </div>
+          </div>
+          <div class="company-description">
+            <p>{{company.description}}</p>
+          </div>
+          <div class="company-footer">
+            <div class="job-count">
+              <i class="bi bi-briefcase-fill"></i>
+              <span>{{company.jobCount}} việc làm đang tuyển</span>
+            </div>
+            <button (click)="viewCompanyDetails(company)" class="view-details-btn">
+              <i class="bi bi-building"></i>
+              Xem công ty
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section-footer">
+      <a routerLink="/companies" class="view-all-btn">
+        <i class="bi bi-arrow-right"></i>
+        Xem tất cả công ty
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-content">
+      <h2>Bạn là nhà tuyển dụng?</h2>
+      <p>Đăng tin tuyển dụng và tìm kiếm ứng viên phù hợp ngay hôm nay</p>
+      <a routerLink="/employer/register" class="cta-button">
+        <i class="bi bi-plus-circle"></i>
+        Đăng tin tuyển dụng
+      </a>
     </div>
   </div>
 </section>

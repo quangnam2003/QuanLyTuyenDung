@@ -36,9 +36,9 @@ export class UserManagementComponent implements OnInit {
   }
 
   changeRole(user: User, newRole: string) {
-    this.userService.updateUserRole(user.id, newRole).subscribe({
+    this.userService.updateUserRole(user.id, newRole.toUpperCase()).subscribe({
       next: () => {
-        user.role = newRole;
+        user.role = newRole.toUpperCase();
       },
       error: () => {
         this.error = 'Cập nhật vai trò thất bại!';
@@ -60,7 +60,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   onRoleChange(user: User, event: Event) {
-    const newRole = (event.target as HTMLSelectElement).value;
+    const newRole = (event.target as HTMLSelectElement).value.toUpperCase();
     if (user.role === newRole) return;
     this.userService.updateUserRole(user.id, newRole).subscribe({
       next: (updatedUser) => {

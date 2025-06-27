@@ -16,7 +16,7 @@ import { UserInterfaceComponent } from './components/user/user-interface/user-in
 import { UserProfileComponent } from './components/user/user-profile/user-profile.component';
 import { UserDashboardComponent } from './components/user/user-dashboard/user-dashboard.component';
 import { UserApplicationsComponent } from './components/user/user-applications/user-applications.component';
-import { UserSettingsComponent } from './components/user/user-settings/user-settings.component';
+import { UserCompaniesComponent } from './components/user/user-companies.component';
 import { JobsComponent } from './components/jobs/jobs.component';
 import { CompaniesComponent } from './components/companies/companies.component';
 
@@ -47,7 +47,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminLayoutComponent,
-    canActivate: [AuthGuard, AdminGuard],
+    canActivate: [AdminGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: AdminDashboardComponent },
@@ -56,10 +56,6 @@ export const routes: Routes = [
       { path: 'applicants', component: ApplicantManagementComponent },
       { path: 'reports', component: AdminReportComponent },
       { path: 'settings', component: AdminSettingsComponent },
-      // Các route khác sẽ được thêm sau
-      // { path: 'candidates', component: CandidateManagementComponent },
-      // { path: 'interviews', component: InterviewManagementComponent },
-      // { path: 'reports', component: ReportsComponent },
     ]
   },
 
@@ -67,7 +63,7 @@ export const routes: Routes = [
   {
     path: 'hr',
     component: HRLayoutComponent,
-    canActivate: [AuthGuard, HRGuard],
+    canActivate: [HRGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { 
@@ -151,7 +147,7 @@ export const routes: Routes = [
   {
     path: 'user',
     component: UserInterfaceComponent,
-    canActivate: [AuthGuard, UserGuard],
+    canActivate: [UserGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { 
@@ -169,12 +165,11 @@ export const routes: Routes = [
         component: UserApplicationsComponent,
         data: { title: 'Đơn ứng tuyển của tôi' }
       },
-      
-      { 
-        path: 'settings', 
-        component: UserSettingsComponent,
-        data: { title: 'Cài đặt tài khoản' }
-      }
+              {
+          path: 'companies',
+          component: UserCompaniesComponent,
+          data: { title: 'Danh sách công ty' }
+        }
     ]
   },
 
@@ -182,7 +177,7 @@ export const routes: Routes = [
   {
     path: 'redirect',
     canActivate: [AuthGuard],
-    component: HomepageComponent, // This will be handled by the guard
+    component: HomepageComponent,
     data: { redirect: true }
   },
 

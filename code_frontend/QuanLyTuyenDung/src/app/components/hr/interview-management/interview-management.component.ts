@@ -18,9 +18,6 @@ import { Interview } from '../../../models/interview.model';
           <p>Lên lịch và quản lý các cuộc phỏng vấn</p>
         </div>
         <div class="header-actions">
-          <button class="btn btn-outline-primary" (click)="exportSchedule()">
-            <i class="bi bi-download"></i> Xuất lịch
-          </button>
           <button class="btn btn-primary" (click)="showCreateModal = true">
             <i class="bi bi-calendar-plus"></i> Lên lịch phỏng vấn
           </button>
@@ -1611,21 +1608,6 @@ export class InterviewManagementComponent implements OnInit {
 
   isInterviewerSelected(interviewerId: number): boolean {
     return this.selectedInterviewers.includes(interviewerId);
-  }
-
-  // Export
-  exportSchedule(): void {
-    this.interviewService.exportSchedule('excel').subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'interview-schedule.xlsx';
-        a.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: (error) => console.error('Error exporting schedule:', error)
-    });
   }
 
   // Modal management

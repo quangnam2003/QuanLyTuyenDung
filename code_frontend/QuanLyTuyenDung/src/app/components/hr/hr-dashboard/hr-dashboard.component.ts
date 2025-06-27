@@ -164,62 +164,7 @@ import { JobService } from '../../../services/job.service';
           </ng-template>
         </div>
 
-        <!-- Performance Chart -->
-        <div class="dashboard-section">
-          <div class="section-header">
-            <h2>Hiệu suất tuyển dụng</h2>
-            <select class="period-selector" [(ngModel)]="selectedPeriod" (change)="updateChart()">
-              <option value="7days">7 ngày qua</option>
-              <option value="30days">30 ngày qua</option>
-              <option value="90days">3 tháng qua</option>
-            </select>
-          </div>
-          <div class="chart-container">
-            <div class="performance-metrics">
-              <div class="metric">
-                <h4>{{chartData.totalApplications}}</h4>
-                <p>Tổng đơn ứng tuyển</p>
-              </div>
-              <div class="metric">
-                <h4>{{chartData.interviewsScheduled}}</h4>
-                <p>Phỏng vấn đã lên lịch</p>
-              </div>
-              <div class="metric">
-                <h4>{{chartData.offersExtended}}</h4>
-                <p>Offer đã gửi</p>
-              </div>
-              <div class="metric">
-                <h4>{{chartData.hiresCompleted}}</h4>
-                <p>Tuyển dụng thành công</p>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Quick Actions -->
-        <div class="dashboard-section">
-          <div class="section-header">
-            <h2>Thao tác nhanh</h2>
-          </div>
-          <div class="quick-actions">
-            <button class="action-btn schedule-interview" routerLink="/hr/interviews/new">
-              <i class="bi bi-calendar-plus"></i>
-              <span>Lên lịch phỏng vấn</span>
-            </button>
-            <button class="action-btn review-applications" routerLink="/hr/applications?status=New">
-              <i class="bi bi-file-text"></i>
-              <span>Xem đơn ứng tuyển mới</span>
-            </button>
-            <button class="action-btn add-candidate" routerLink="/hr/candidates/new">
-              <i class="bi bi-person-plus"></i>
-              <span>Thêm ứng viên</span>
-            </button>
-            <button class="action-btn generate-report" routerLink="/hr/reports">
-              <i class="bi bi-graph-up"></i>
-              <span>Tạo báo cáo</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   `,
@@ -365,10 +310,7 @@ import { JobService } from '../../../services/job.service';
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .dashboard-section:nth-child(3),
-    .dashboard-section:nth-child(4) {
-      grid-column: 1 / -1;
-    }
+
 
     .section-header {
       display: flex;
@@ -527,69 +469,7 @@ import { JobService } from '../../../services/job.service';
       font-size: 0.8rem;
     }
 
-    .performance-metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
-      margin-top: 1rem;
-    }
 
-    .metric {
-      text-align: center;
-      padding: 1.5rem;
-      border: 1px solid #f0f0f0;
-      border-radius: 8px;
-    }
-
-    .metric h4 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin: 0 0 0.5rem;
-      color: #2c5282;
-    }
-
-    .metric p {
-      color: #6c757d;
-      margin: 0;
-      font-size: 0.9rem;
-    }
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-
-    .action-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 1.5rem;
-      border: 2px solid #e9ecef;
-      border-radius: 8px;
-      background: white;
-      color: #6c757d;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .action-btn:hover {
-      border-color: #007bff;
-      color: #007bff;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,123,255,0.15);
-    }
-
-    .action-btn i {
-      font-size: 2rem;
-    }
-
-    .action-btn span {
-      font-weight: 500;
-      text-align: center;
-    }
 
     .empty-state {
       text-align: center;
@@ -608,10 +488,7 @@ import { JobService } from '../../../services/job.service';
         grid-template-columns: 1fr;
       }
 
-      .dashboard-section:nth-child(3),
-      .dashboard-section:nth-child(4) {
-        grid-column: 1;
-      }
+
 
       .stats-grid {
         grid-template-columns: 1fr;
@@ -650,14 +527,6 @@ export class HRDashboardComponent implements OnInit {
 
   recentApplications: any[] = [];
   todayInterviews: any[] = [];
-  selectedPeriod = '7days';
-  
-  chartData = {
-    totalApplications: 0,
-    interviewsScheduled: 0,
-    offersExtended: 0,
-    hiresCompleted: 0
-  };
 
   constructor(
     private applicationService: ApplicationService,
@@ -695,20 +564,10 @@ export class HRDashboardComponent implements OnInit {
       error: (error) => console.error('Error loading today interviews:', error)
     });
 
-    // Load chart data
-    this.updateChart();
+
   }
 
-  updateChart(): void {
-    // Load performance data based on selected period
-    // This would call a specific API endpoint for chart data
-    this.chartData = {
-      totalApplications: 156,
-      interviewsScheduled: 45,
-      offersExtended: 12,
-      hiresCompleted: 8
-    };
-  }
+
 
   getStatusClass(status: string): string {
     switch (status) {

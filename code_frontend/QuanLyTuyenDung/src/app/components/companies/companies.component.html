@@ -1,0 +1,139 @@
+<app-header></app-header>
+
+<div class="companies-page">
+  <!-- Banner Section -->
+  <section class="banner">
+    <div class="container">
+      <h1>Khám phá các công ty hàng đầu</h1>
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="onSearch()"
+          placeholder="Nhập từ khóa tìm kiếm: tên công ty, lĩnh vực, địa điểm...">
+        <button class="search-btn" (click)="onSearch()">
+          <i class="bi bi-search"></i>
+          Tìm kiếm
+        </button>
+      </div>
+      <div class="filter-container">
+        <select [(ngModel)]="selectedIndustry" (change)="onFilterChange()" aria-label="Chọn lĩnh vực">
+          <option value="">Tất cả lĩnh vực</option>
+          <option *ngFor="let industry of industries" [value]="industry">{{industry}}</option>
+        </select>
+        <select [(ngModel)]="selectedSize" (change)="onFilterChange()" aria-label="Chọn quy mô">
+          <option value="">Tất cả quy mô</option>
+          <option *ngFor="let size of sizes" [value]="size">{{size}}</option>
+        </select>
+        <button (click)="clearFilters()" class="clear-filters-btn">
+          <i class="bi bi-x-circle"></i>
+          Xóa bộ lọc
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Companies List Section -->
+  <section class="companies-section">
+    <div class="container">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Đang tải danh sách công ty...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{error}}</p>
+        <button (click)="loadCompanies()" class="retry-btn">
+          <i class="bi bi-arrow-clockwise"></i>
+          Thử lại
+        </button>
+      </div>
+
+      <!-- Companies List -->
+      <div class="companies-list" *ngIf="!loading && !error && filteredCompanies.length > 0">
+        <div class="results-header">
+          <h2>Danh sách công ty ({{filteredCompanies.length}})</h2>
+        </div>
+
+        <div class="company-cards">
+          <div class="company-card" *ngFor="let company of filteredCompanies">
+            <div class="company-header">
+              <div class="company-logo" *ngIf="company.logo">
+                <img [src]="company.logo" [alt]="company.name + ' logo'">
+              </div>
+              <div class="company-logo default-logo" *ngIf="!company.logo">
+                <i class="bi bi-building"></i>
+              </div>
+              <div class="company-info">
+                <h3>{{company.name}}</h3>
+                <div class="company-meta">
+                  <span class="industry">
+                    <i class="bi bi-briefcase"></i>
+                    {{company.industry}}
+                  </span>
+                  <span class="location">
+                    <i class="bi bi-geo-alt"></i>
+                    {{company.location}}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="company-details">
+              <div class="company-size">
+                <i class="bi bi-people"></i>
+                <span>{{company.size}}</span>
+              </div>
+              <div class="job-count">
+                <i class="bi bi-briefcase-fill"></i>
+                <span>{{company.jobCount}} việc làm đang tuyển</span>
+              </div>
+            </div>
+
+            <div class="company-description">
+              <p>{{company.description}}</p>
+            </div>
+
+            <div class="company-benefits" *ngIf="company.benefits && company.benefits.length > 0">
+              <h4>Phúc lợi:</h4>
+              <ul>
+                <li *ngFor="let benefit of company.benefits">{{benefit}}</li>
+              </ul>
+            </div>
+
+            <div class="company-footer">
+              <div class="working-info">
+                <div *ngIf="company.workingDays">
+                  <i class="bi bi-calendar-week"></i>
+                  <small>{{company.workingDays}}</small>
+                </div>
+                <div *ngIf="company.workingHours">
+                  <i class="bi bi-clock"></i>
+                  <small>{{company.workingHours}}</small>
+                </div>
+              </div>
+              <button (click)="viewCompanyDetails(company)" class="view-details-btn">
+                <i class="bi bi-eye"></i>
+                Xem chi tiết
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="!loading && !error && filteredCompanies.length === 0" class="no-results">
+        <i class="bi bi-building"></i>
+        <h3>Không tìm thấy công ty phù hợp</h3>
+        <p>Vui lòng thử lại với các bộ lọc khác</p>
+        <button (click)="clearFilters()" class="clear-filters-btn">
+          <i class="bi bi-arrow-clockwise"></i>
+          Xóa bộ lọc và tìm lại
+        </button>
+      </div>
+    </div>
+  </section>
+</div> 

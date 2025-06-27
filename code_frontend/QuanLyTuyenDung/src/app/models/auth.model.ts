@@ -9,6 +9,15 @@ export interface RegisterRequest {
   firstName: string;
   lastName: string;
   phone?: string;
+  role?: string;
+  company?: {
+    name: string;
+    industry: string;
+    size: string;
+    location: string;
+    website?: string;
+    description?: string;
+  };
 }
 
 export interface AuthResponse {
@@ -17,6 +26,11 @@ export interface AuthResponse {
   fullName: string;
   role: string;
   token: string;
+  companyId?: number;
   createdAt?: Date;
-  updatedAt?: Date;
+  isAuthenticated: boolean;
+  isAdmin?: boolean;
+  isHR?: boolean;
+  isUser?: boolean;
+  userRole?: string; // Normalized uppercase role
 } 

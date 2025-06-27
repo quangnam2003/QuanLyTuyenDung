@@ -25,6 +25,7 @@ namespace QuanLyTuyenDung.DBContext
         public DbSet<JobApplicationStatus> JobApplicationStatuses { get; set; }
         public DbSet<UserNotification> Notifications { get; set; }
         public DbSet<SystemSetting> SystemSettings { get; set; }
+        public DbSet<Company> Companies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

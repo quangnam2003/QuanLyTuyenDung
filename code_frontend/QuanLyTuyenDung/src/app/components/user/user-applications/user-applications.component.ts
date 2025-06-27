@@ -1,124 +1,251 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UserDashboardService } from '../../../services/user-dashboard.service';
+import { RouterModule } from '@angular/router';
+
+interface Application {
+  id: number;
+  companyName: string;
+  position: string;
+  status: string;
+  date: string;
+  logo?: string;
+  nextStep?: string;
+}
 
 @Component({
   selector: 'app-user-applications',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   template: `
     <div class="applications-container">
-      <h2>Đơn ứng tuyển của bạn</h2>
-      
-      <!-- Hiển thị thông báo lỗi -->
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
-        <button (click)="loadApplications()">Thử lại</button>
+      <div class="page-header">
+        <h1>Đơn ứng tuyển của tôi</h1>
+        <p class="subtitle">Theo dõi trạng thái đơn ứng tuyển của bạn</p>
       </div>
 
-      <!-- Hiển thị loading -->
-      <div *ngIf="isLoading" class="loading">
-        Đang tải dữ liệu...
+      <div class="applications-list" *ngIf="applications.length > 0">
+        <div class="application-card" *ngFor="let app of applications">
+          <div class="company-logo" *ngIf="app.logo">
+            <img [src]="app.logo" [alt]="app.companyName">
+          </div>
+          <div class="application-info">
+            <h3>{{app.position}}</h3>
+            <p class="company-name">{{app.companyName}}</p>
+            <div class="application-meta">
+              <span class="date"><i class="fas fa-calendar"></i> Nộp ngày: {{app.date}}</span>
+              <span class="status" [ngClass]="app.status.toLowerCase()">{{app.status}}</span>
+            </div>
+            <p class="next-step" *ngIf="app.nextStep">
+              <i class="fas fa-info-circle"></i> {{app.nextStep}}
+            </p>
+          </div>
+          <div class="actions">
+            <button class="btn-view" (click)="viewDetails(app.id)">
+              Xem chi tiết
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- Hiển thị danh sách ứng tuyển -->
-      <table *ngIf="applications.length > 0 && !isLoading && !errorMessage">
-        <thead>
-          <tr>
-            <th>Công ty</th>
-            <th>Vị trí</th>
-            <th>Thời gian ứng tuyển</th>
-            <th>Xác thực từ công ty</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let app of applications">
-            <td>{{app.company}}</td>
-            <td>{{app.position}}</td>
-            <td>{{app.appliedAt | date:'dd/MM/yyyy HH:mm'}}</td>
-            <td class="status-cell">
-              <span *ngIf="app.verified" class="verified">&#10003;</span>
-              <span *ngIf="!app.verified" class="not-verified">&#10007;</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Hiển thị khi không có dữ liệu -->
-      <div *ngIf="applications.length === 0 && !isLoading && !errorMessage" class="no-data">
-        <p>Bạn chưa ứng tuyển công ty nào.</p>
+      <div class="empty-state" *ngIf="applications.length === 0">
+        <i class="fas fa-file-alt empty-icon"></i>
+        <p>Bạn chưa có đơn ứng tuyển nào</p>
+        <a routerLink="/user/jobs" class="btn-primary">Tìm việc ngay</a>
       </div>
     </div>
   `,
   styles: [`
-    .applications-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-    h2 { color: #2c3e50; margin-bottom: 2rem; }
-    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #eee; }
-    th { background: #f5f6fa; color: #3498db; }
-    .status-cell { text-align: center; }
-    .verified { color: #27ae60; font-size: 1.5rem; }
-    .not-verified { color: #e74c3c; font-size: 1.5rem; }
-    .error-message { 
-      background: #f8d7da; 
-      color: #721c24; 
-      padding: 1rem; 
-      border-radius: 4px; 
-      margin-bottom: 1rem;
+    .applications-container {
+      padding: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      color: #2B3674;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #707EAE;
+      font-size: 16px;
+    }
+
+    .application-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 24px;
     }
-    .error-message button {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .error-message button:hover {
-      background: #c82333;
-    }
-    .loading {
-      text-align: center;
-      padding: 2rem;
-      color: #666;
-    }
-    .no-data {
-      text-align: center;
-      padding: 2rem;
-      background: #f8f9fa;
+
+    .company-logo {
+      width: 64px;
+      height: 64px;
       border-radius: 8px;
-      color: #666;
+      overflow: hidden;
+      background: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-  `],
-  standalone: true,
-  imports: [CommonModule]
+
+    .company-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .application-info {
+      flex: 1;
+    }
+
+    .application-info h3 {
+      font-size: 18px;
+      color: #2B3674;
+      margin: 0 0 4px 0;
+    }
+
+    .company-name {
+      color: #707EAE;
+      font-size: 14px;
+      margin: 0 0 12px 0;
+    }
+
+    .application-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .date {
+      color: #707EAE;
+      font-size: 14px;
+    }
+
+    .date i {
+      margin-right: 4px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status.đã-nộp { background: #E8F5E9; color: #2E7D32; }
+    .status.đang-xử-lý { background: #FFF3E0; color: #EF6C00; }
+    .status.phỏng-vấn { background: #E3F2FD; color: #1565C0; }
+    .status.từ-chối { background: #FFEBEE; color: #C62828; }
+
+    .next-step {
+      color: #2B3674;
+      font-size: 14px;
+      margin: 8px 0 0 0;
+    }
+
+    .next-step i {
+      margin-right: 4px;
+      color: #1565C0;
+    }
+
+    .actions {
+      min-width: 120px;
+    }
+
+    .btn-view {
+      background: transparent;
+      color: #2B3674;
+      border: 1px solid #E6E8F0;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-view:hover {
+      background: #f8f9fa;
+      border-color: #2B3674;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      color: #707EAE;
+      margin-bottom: 16px;
+    }
+
+    .empty-state p {
+      color: #2B3674;
+      margin-bottom: 24px;
+    }
+
+    .btn-primary {
+      background: #2B3674;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #1a2142;
+    }
+  `]
 })
 export class UserApplicationsComponent implements OnInit {
-  applications: any[] = [];
-  errorMessage: string = '';
-  isLoading: boolean = false;
+  applications: Application[] = [
+    {
+      id: 1,
+      companyName: 'FPT Software',
+      position: 'Frontend Developer',
+      status: 'Đã nộp',
+      date: '20/03/2024',
+      nextStep: 'Chờ phản hồi từ nhà tuyển dụng'
+    },
+    {
+      id: 2,
+      companyName: 'Viettel Solutions',
+      position: 'Software Engineer',
+      status: 'Đang xử lý',
+      date: '18/03/2024',
+      nextStep: 'Đang xem xét hồ sơ của bạn'
+    },
+    {
+      id: 3,
+      companyName: 'VNG Corporation',
+      position: 'Full Stack Developer',
+      status: 'Phỏng vấn',
+      date: '15/03/2024',
+      nextStep: 'Phỏng vấn lúc 14:00 ngày 25/03/2024'
+    }
+  ];
 
-  constructor(private dashboardService: UserDashboardService) {}
+  constructor() {}
 
-  ngOnInit(): void {
-    this.loadApplications();
-  }
+  ngOnInit(): void {}
 
-  loadApplications(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-    
-    this.dashboardService.getRecentApplications().subscribe({
-      next: (data) => {
-        this.applications = data || [];
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.errorMessage = 'Không thể tải danh sách ứng tuyển. Vui lòng thử lại sau.';
-        this.isLoading = false;
-        console.error('Error loading applications:', error);
-      }
-    });
+  viewDetails(id: number): void {
+    console.log('Xem chi tiết đơn ứng tuyển:', id);
+    // Implement view details logic
   }
 } 

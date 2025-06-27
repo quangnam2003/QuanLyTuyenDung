@@ -1,0 +1,126 @@
+<app-header></app-header>
+
+<div class="jobs-page">
+  <!-- Banner Section -->
+  <section class="banner">
+    <div class="container">
+      <h1>Tìm việc làm phù hợp</h1>
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="onSearch()"
+          placeholder="Nhập từ khóa tìm kiếm: tên công việc, công ty, địa điểm...">
+        <button class="search-btn" (click)="onSearch()">
+          <i class="bi bi-search"></i>
+          Tìm kiếm
+        </button>
+      </div>
+      <div class="filter-container">
+        <select [(ngModel)]="selectedType" (change)="onFilterChange()" aria-label="Chọn loại hình công việc">
+          <option value="">Tất cả loại hình</option>
+          <option *ngFor="let type of jobTypes" [value]="type">{{type}}</option>
+        </select>
+        <select [(ngModel)]="selectedLocation" (change)="onFilterChange()" aria-label="Chọn địa điểm">
+          <option value="">Tất cả địa điểm</option>
+          <option *ngFor="let location of locations" [value]="location">{{location}}</option>
+        </select>
+        <select [(ngModel)]="selectedCompany" (change)="onFilterChange()" aria-label="Chọn công ty">
+          <option value="">Tất cả công ty</option>
+          <option *ngFor="let company of companies" [value]="company">{{company}}</option>
+        </select>
+        <button (click)="clearFilters()" class="clear-filters-btn">
+          <i class="bi bi-x-circle"></i>
+          Xóa bộ lọc
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Jobs List Section -->
+  <section class="jobs-section">
+    <div class="container">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Đang tải danh sách việc làm...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{error}}</p>
+        <button (click)="loadJobs()" class="retry-btn">
+          <i class="bi bi-arrow-clockwise"></i>
+          Thử lại
+        </button>
+      </div>
+
+      <!-- Jobs List -->
+      <div class="jobs-list" *ngIf="!loading && !error && filteredJobs.length > 0">
+        <div class="results-header">
+          <h2>Danh sách việc làm ({{filteredJobs.length}})</h2>
+        </div>
+
+        <div class="job-cards">
+          <div class="job-card" *ngFor="let job of filteredJobs">
+            <div class="job-header">
+              <h3>{{job.title}}</h3>
+              <span class="job-type" [ngClass]="getJobTypeClass(job.type)">
+                {{job.type}}
+              </span>
+            </div>
+            
+            <div class="job-info">
+              <div class="company-info">
+                <i class="bi bi-building"></i>
+                <span>{{job.company}}</span>
+              </div>
+              <div class="location-info">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{job.location}}</span>
+              </div>
+              <div class="salary-info" *ngIf="job.salary">
+                <i class="bi bi-cash-stack"></i>
+                <span>{{job.salary}}</span>
+              </div>
+            </div>
+
+            <div class="job-description">
+              <p>{{job.description}}</p>
+            </div>
+
+            <div class="job-benefits" *ngIf="job.benefits && job.benefits.length > 0">
+              <h4>Phúc lợi:</h4>
+              <ul>
+                <li *ngFor="let benefit of job.benefits">{{benefit}}</li>
+              </ul>
+            </div>
+
+            <div class="job-footer">
+              <div class="job-date">
+                <i class="bi bi-clock"></i>
+                <small>Đăng {{ formatDate(job.createdAt) }}</small>
+              </div>
+              <button (click)="viewJobDetails(job)" class="view-details-btn">
+                <i class="bi bi-eye"></i>
+                Xem chi tiết
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="!loading && !error && filteredJobs.length === 0" class="no-results">
+        <i class="bi bi-briefcase"></i>
+        <h3>Không tìm thấy việc làm phù hợp</h3>
+        <p>Vui lòng thử lại với các bộ lọc khác</p>
+        <button (click)="clearFilters()" class="clear-filters-btn">
+          <i class="bi bi-arrow-clockwise"></i>
+          Xóa bộ lọc và tìm lại
+        </button>
+      </div>
+    </div>
+  </section>
+</div> 

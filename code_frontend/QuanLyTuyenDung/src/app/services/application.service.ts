@@ -1,18 +1,23 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Application } from '../models/application.model';
 import { environment } from '../../environments/environment';
 import { Applicant } from '../models/application.model';
+import { MockDataService, MockApplication } from './mock-data.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApplicationService {
   private apiUrl = `${environment.apiUrl}/api/Applications`;
+  private useMockData = true; // Set to false when real API is ready
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private mockDataService: MockDataService
+  ) { }
 
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'Đã xảy ra lỗi!';
@@ -35,14 +40,52 @@ export class ApplicationService {
     return throwError(() => new Error(errorMessage));
   }
 
+  private convertMockToApplication(mockApp: MockApplication): Application {
+    return {
+      id: mockApp.id,
+      jobId: mockApp.jobId,
+      jobTitle: mockApp.jobTitle,
+      candidateId: mockApp.candidateId,
+      candidateName: mockApp.candidateName,
+      candidateEmail: mockApp.candidateEmail,
+      candidatePhone: mockApp.candidatePhone,
+      appliedDate: mockApp.appliedDate,
+      status: mockApp.status,
+      currentStage: mockApp.currentStage,
+      source: mockApp.source,
+      documents: mockApp.documents,
+      tags: mockApp.tags,
+      timeline: mockApp.timeline,
+      priority: mockApp.priority,
+      lastUpdated: mockApp.lastUpdated,
+      matchPercentage: mockApp.matchPercentage,
+      keySkillsMatch: mockApp.keySkillsMatch,
+      expectedSalary: mockApp.expectedSalary
+    };
+  }
+
   // Lấy tất cả đơn ứng tuyển
   getAllApplications(): Observable<Application[]> {
+    if (this.useMockData) {
+      const mockApplications = this.mockDataService.getAllApplications();
+      const applications = mockApplications.map(app => this.convertMockToApplication(app));
+      return of(applications);
+    }
+    
     return this.http.get<Application[]>(this.apiUrl)
       .pipe(catchError(this.handleError));
   }
 
   // Lấy đơn ứng tuyển theo status
   getApplicationsByStatus(status: string): Observable<Application[]> {
+    if (this.useMockData) {
+      const mockApplications = this.mockDataService.getAllApplications();
+      const filteredApplications = mockApplications
+        .filter(app => app.status === status)
+        .map(app => this.convertMockToApplication(app));
+      return of(filteredApplications);
+    }
+    
     return this.http.get<Application[]>(`${this.apiUrl}/status/${status}`)
       .pipe(catchError(this.handleError));
   }

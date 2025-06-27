@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { LoginRequest } from '../../../models/auth.model';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -54,7 +55,7 @@ import { LoginRequest } from '../../../models/auth.model';
             <button
               type="submit"
               class="btn btn-primary w-100"
-              [disabled]="isLoading"
+              [disabled]="isLoading || loginForm.invalid"
             >
               {{ isLoading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
             </button>
@@ -65,7 +66,7 @@ import { LoginRequest } from '../../../models/auth.model';
           </div>
 
           <div class="text-center mt-3">
-            Chưa có tài khoản?<a routerLink="/register"> Đăng ký ngay</a>
+            Chưa có tài khoản? <a routerLink="/register">Đăng ký ngay</a>
           </div>
         </form>
       </div>
@@ -190,27 +191,65 @@ export class LoginComponent {
   ) {}
 
   onSubmit(): void {
-    if (this.isLoading) return;
+    if (this.isLoading || !this.loginRequest.email || !this.loginRequest.password) {
+      console.log('Form validation failed:', { 
+        email: this.loginRequest.email, 
+        hasPassword: !!this.loginRequest.password 
+      });
+      return;
+    }
+
+    console.log('Attempting login with:', { 
+      email: this.loginRequest.email,
+      passwordLength: this.loginRequest.password.length 
+    });
 
     this.isLoading = true;
     this.error = null;
 
     this.authService.login(this.loginRequest).subscribe({
-      next: (response: any) => {
-        console.log('Login response:', response);
-        if (response.role === 'Admin') {
-          this.router.navigate(['/admin']);
-        } else if (response.role === 'HR') {
-          this.router.navigate(['/hr']);
-        } else {
-          this.router.navigate(['/user/dashboard']);
+      next: (response) => {
+        console.log('Login response received:', {
+          hasResponse: !!response,
+          hasToken: !!response?.token,
+          hasEmail: !!response?.email,
+          hasRole: !!response?.role,
+          role: response?.role
+        });
+
+        if (!response) {
+          this.error = 'Lỗi xác thực: Không nhận được phản hồi từ server';
+          this.isLoading = false;
+          return;
         }
+
+        if (!response.token) {
+          this.error = 'Lỗi xác thực: Không nhận được token từ server';
+          this.isLoading = false;
+          return;
+        }
+
+        // Navigate based on role
+        const route = this.authService.getDefaultRoute();
+        console.log('Navigating to route:', route);
+        this.router.navigate([route]);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Login error:', err);
+        
+        if (err.status === 401) {
+          this.error = 'Sai email hoặc mật khẩu';
+        } else if (err.status === 0) {
+          this.error = 'Không thể kết nối đến máy chủ';
+        } else {
+          this.error = err.error?.message || 'Đăng nhập thất bại';
+        }
+        
         this.isLoading = false;
       },
-      error: (err) => {
-        this.error = err.error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+      complete: () => {
         this.isLoading = false;
       }
     });
   }
-} 
+}

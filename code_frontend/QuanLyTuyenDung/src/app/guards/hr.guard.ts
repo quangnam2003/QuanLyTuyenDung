@@ -12,11 +12,16 @@ export class HRGuard implements CanActivate {
   ) {}
 
   canActivate(): boolean {
-    if (this.authService.isHR()) {
-      return true;
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login']);
+      return false;
     }
     
-    this.router.navigate(['/login']);
+    if (!this.authService.isHR()) {
+      this.router.navigate([this.authService.getDefaultRoute()]);
     return false;
+    }
+
+    return true;
   }
 }
