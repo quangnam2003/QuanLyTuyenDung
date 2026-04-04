@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  quanlytuyendung:
+    image: quanlytuyendung
+    build:
+      context: ./QuanLyTuyenDung
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"

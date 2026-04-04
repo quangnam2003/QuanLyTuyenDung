@@ -1,4 +1,4 @@
-﻿using QuanLyTuyenDung.Models;
+using QuanLyTuyenDung.Models;
 using QuanLyTuyenDung.DBContext;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,11 +44,10 @@ namespace QuanLyTuyenDung.Services
                 notifications.Add(posterNotification);
 
                 // Thông báo cho ứng viên
-                if (int.TryParse(candidate.UserId, out int candidateUserId))
                 {
                     var candidateNotification = new UserNotification
                     {
-                        UserID = candidateUserId,
+                        UserID = candidate.UserId,
                         Title = "✅ Ứng tuyển thành công",
                         Message = $"Bạn đã ứng tuyển thành công vào vị trí {job.Title} tại {job.Company}. Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.",
                         Type = "Success",
@@ -88,11 +87,10 @@ namespace QuanLyTuyenDung.Services
                 }
 
                 var candidate = interview.Application.Candidate;
-                if (int.TryParse(candidate.UserId, out int candidateUserId))
                 {
                     var notification = new UserNotification
                     {
-                        UserID = candidateUserId,
+                        UserID = candidate.UserId,
                         Title = "📅 Lịch phỏng vấn mới",
                         Message = $"Bạn có lịch phỏng vấn cho vị trí {interview.Application.Job.Title} vào lúc {interview.ScheduledAt:dd/MM/yyyy HH:mm}. Vui lòng chuẩn bị kỹ lưỡng!",
                         Type = "Warning",
@@ -130,11 +128,10 @@ namespace QuanLyTuyenDung.Services
                 }
 
                 var candidate = jobOffer.Application.Candidate;
-                if (int.TryParse(candidate.UserId, out int candidateUserId))
                 {
                     var notification = new UserNotification
                     {
-                        UserID = candidateUserId,
+                        UserID = candidate.UserId,
                         Title = "🎉 Thư mời làm việc",
                         Message = $"Chúc mừng! Bạn đã nhận được thư mời làm việc cho vị trí {jobOffer.Application.Job.Title} với mức lương {jobOffer.Salary:N0} VND/tháng. Hạn phản hồi: {jobOffer.StartDate:dd/MM/yyyy}",
                         Type = "Success",
@@ -170,13 +167,12 @@ namespace QuanLyTuyenDung.Services
                 }
 
                 var candidate = application.Candidate;
-                if (int.TryParse(candidate.UserId, out int candidateUserId))
                 {
                     var (statusMessage, notificationType, icon) = GetStatusDetails(newStatus);
 
                     var notification = new UserNotification
                     {
-                        UserID = candidateUserId,
+                        UserID = candidate.UserId,
                         Title = $"{icon} Cập nhật trạng thái ứng tuyển",
                         Message = $"Đơn ứng tuyển của bạn cho vị trí {application.Job.Title} tại {application.Job.Company} {statusMessage}",
                         Type = notificationType,
@@ -309,7 +305,6 @@ namespace QuanLyTuyenDung.Services
                 }
 
                 var candidate = interview.Application.Candidate;
-                if (int.TryParse(candidate.UserId, out int candidateUserId))
                 {
                     var (resultMessage, notificationType, icon) = result.ToLower() switch
                     {
@@ -320,7 +315,7 @@ namespace QuanLyTuyenDung.Services
 
                     var notification = new UserNotification
                     {
-                        UserID = candidateUserId,
+                        UserID = candidate.UserId,
                         Title = $"{icon} Kết quả phỏng vấn",
                         Message = $"Buổi phỏng vấn cho vị trí {interview.Application.Job.Title} {resultMessage}. Chúng tôi sẽ thông báo kết quả cuối cùng sớm nhất.",
                         Type = notificationType,
@@ -358,11 +353,10 @@ namespace QuanLyTuyenDung.Services
                 }
 
                 var candidate = interview.Application.Candidate;
-                if (int.TryParse(candidate.UserId, out int candidateUserId))
                 {
                     var notification = new UserNotification
                     {
-                        UserID = candidateUserId,
+                        UserID = candidate.UserId,
                         Title = $"⏰ Nhắc nhở phỏng vấn",
                         Message = $"Bạn có lịch phỏng vấn cho vị trí {interview.Application.Job.Title} vào {interview.ScheduledAt:dd/MM/yyyy HH:mm} (còn {hoursBeforeInterview} giờ). Vui lòng chuẩn bị đầy đủ!",
                         Type = "Warning",

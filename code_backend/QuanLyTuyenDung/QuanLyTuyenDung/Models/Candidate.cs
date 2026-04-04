@@ -10,7 +10,7 @@ namespace QuanLyTuyenDung.Models
         public int CandidateID { get; set; }
 
         [Required]
-        public string UserId { get; set; }
+        public int UserId { get; set; }
 
         [Required, MaxLength(100)]
         public string FirstName { get; set; }

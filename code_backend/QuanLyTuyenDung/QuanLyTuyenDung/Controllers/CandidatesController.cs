@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuanLyTuyenDung.Models;
 using QuanLyTuyenDung.DBContext;
@@ -103,11 +103,11 @@ namespace QuanLyTuyenDung.Controllers
         public async Task<ActionResult<Candidate>> GetCurrentUserProfile()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
                 return Unauthorized();
             }
-            var candidate = await _context.Candidates.FirstOrDefaultAsync(c => c.UserId == userId);
+            var candidate = await _context.Candidates.FirstOrDefaultAsync(c => c.UserId == userIdInt);
             if (candidate == null)
             {
                 return NotFound();
@@ -121,14 +121,14 @@ namespace QuanLyTuyenDung.Controllers
         public async Task<ActionResult<Candidate>> SaveProfile([FromBody] Candidate profile)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
             {
                 return Unauthorized();
             }
-            var existingCandidate = await _context.Candidates.FirstOrDefaultAsync(c => c.UserId == userId);
+            var existingCandidate = await _context.Candidates.FirstOrDefaultAsync(c => c.UserId == userIdInt);
             if (existingCandidate == null)
             {
-                profile.UserId = userId;
+                profile.UserId = userIdInt;
                 profile.CreatedAt = DateTime.UtcNow;
                 _context.Candidates.Add(profile);
             }
@@ -153,7 +153,7 @@ namespace QuanLyTuyenDung.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CandidateExists(userId))
+                if (!CandidateExistsByUserId(userIdInt))
                 {
                     return NotFound();
                 }
@@ -253,7 +253,7 @@ namespace QuanLyTuyenDung.Controllers
         {
             return _context.Candidates.Any(e => e.CandidateID == id);
         }
-        private bool CandidateExists(string userId)
+        private bool CandidateExistsByUserId(int userId)
         {
             return _context.Candidates.Any(e => e.UserId == userId);
         }
